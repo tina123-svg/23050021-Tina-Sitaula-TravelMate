@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Mail, Lock, User, Building, MapPin, Phone, FileText } from "lucide-react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
+const API_URL = "http://localhost:5000/api/auth"; 
 
 export default function SignUpPage() {
   const [role, setRole] = useState<"traveler" | "agency">("traveler");
@@ -10,39 +15,66 @@ export default function SignUpPage() {
   const [agencyAddress, setAgencyAddress] = useState("");
   const [agencyPhone, setAgencyPhone] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign Up →", {
-      role,
-      fullName,
-      email,
-      password,
-      ...(role === "agency" && { agencyName, agencyAddress, agencyPhone, licenseNumber }),
-    });
+
+    // Basic validation
+    if (!fullName || !email || !password) {
+      toast.error("Full name, email, and password are required");
+      return;
+    }
+
+    if (role === "agency") {
+      if (!agencyName || !agencyAddress || !agencyPhone || !licenseNumber) {
+        toast.error("All agency fields are required");
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      const payload: any = {
+        fullName,
+        email,
+        password,
+        role,
+      };
+
+      if (role === "agency") {
+        payload.agencyName = agencyName;
+        payload.agencyAddress = agencyAddress;
+        payload.agencyPhone = agencyPhone;
+        payload.licenseNumber = licenseNumber;
+      }
+
+      const res = await axios.post(`${API_URL}/signup`, payload);
+
+      // Save token and user
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      toast.success("Registration successful!");
+      navigate("/dashboard"); // Or home page
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center"
-      style={{
-        background: `
-          linear-gradient(
-            115deg,
-            #2435A1 0%,
-            #2435A1 32%,
-            white 32%,
-            white 100%
-          )
-        `
-      }}
+    // ... same structure as before, just update form and button
+    <div className="min-h-screen w-full flex items-center justify-center"
+      style={{ background: `linear-gradient(115deg, #2435A1 0%, #2435A1 32%, white 32%, white 100%)` }}
     >
-      {/* BOX SIZE NEVER CHANGES */}
       <div className="w-[92%] max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
-
+        
         {/* LEFT IMAGE */}
-        <div
-          className="relative w-full lg:w-1/2 h-96 lg:h-auto bg-cover bg-center"
+        <div className="relative w-full lg:w-1/2 h-96 lg:h-auto bg-cover bg-center"
           style={{ backgroundImage: "url('/src/assets/div.png')" }}
         >
           <div className="absolute inset-0 bg-black/30"></div>
@@ -58,12 +90,11 @@ export default function SignUpPage() {
         {/* RIGHT FORM */}
         <div className="w-full lg:w-1/2 bg-[#0F4CB5] flex items-center justify-center p-10">
           <div className="w-full max-w-sm space-y-7">
-
             <div className="border border-white text-white py-2 text-center uppercase font-semibold tracking-wide rounded">
               Travel Mate
             </div>
 
-            {/* ROLE SELECTOR */}
+            {/* Role Selector */}
             <div className="flex justify-center gap-10">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="radio" checked={role === "traveler"} onChange={() => setRole("traveler")} className="w-5 h-5 accent-white" />
@@ -75,64 +106,55 @@ export default function SignUpPage() {
               </label>
             </div>
 
-            {/* COMMON FIELDS */}
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Common Fields */}
               <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
                 <User size={18} className="text-gray-500" />
                 <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" required />
               </div>
-
               <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
                 <Mail size={18} className="text-gray-500" />
                 <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" required />
               </div>
-
               <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
                 <Lock size={18} className="text-gray-500" />
                 <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" required />
               </div>
-            </div>
 
-            {/* AGENCY FIELDS – DOUBLE COLUMN + SMOOTH ANIMATION */}
-            <div className="overflow-hidden">
-              <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-4 transition-all duration-500 ease-in-out ${
-                  role === "agency" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 h-0"
-                }`}
-              >
-                <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                  <Building size={18} className="text-gray-500" />
-                  <input type="text" placeholder="Agency Name" value={agencyName} onChange={(e) => setAgencyName(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
-                </div>
-
-                <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                  <MapPin size={18} className="text-gray-500" />
-                  <input type="text" placeholder="Agency Address" value={agencyAddress} onChange={(e) => setAgencyAddress(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
-                </div>
-
-                <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                  <Phone size={18} className="text-gray-500" />
-                  <input type="tel" placeholder="Agency Phone" value={agencyPhone} onChange={(e) => setAgencyPhone(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
-                </div>
-
-                <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                  <FileText size={18} className="text-gray-500" />
-                  <input type="text" placeholder="License Number" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
+              {/* Agency Fields */}
+              <div className="overflow-hidden">
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 transition-all duration-500 ease-in-out ${role === "agency" ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 h-0"}`}>
+                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
+                    <Building size={18} className="text-gray-500" />
+                    <input type="text" placeholder="Agency Name" value={agencyName} onChange={(e) => setAgencyName(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
+                  </div>
+                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
+                    <MapPin size={18} className="text-gray-500" />
+                    <input type="text" placeholder="Agency Address" value={agencyAddress} onChange={(e) => setAgencyAddress(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
+                  </div>
+                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
+                    <Phone size={18} className="text-gray-500" />
+                    <input type="tel" placeholder="Agency Phone" value={agencyPhone} onChange={(e) => setAgencyPhone(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
+                  </div>
+                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
+                    <FileText size={18} className="text-gray-500" />
+                    <input type="text" placeholder="License Number" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-800" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* REGISTER BUTTON */}
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-white text-[#0F4CB5] font-bold text-lg py-4 rounded-full shadow hover:bg-gray-100 transition"
-            >
-              REGISTER
-            </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-white text-[#0F4CB5] font-bold text-lg py-4 rounded-full shadow hover:bg-gray-100 transition disabled:opacity-70"
+              >
+                {loading ? "Creating Account..." : "REGISTER"}
+              </button>
+            </form>
 
             <p className="text-center text-white/80">
               Already have an account?{" "}
-              <span className="text-white font-bold hover:underline cursor-pointer">
+              <span onClick={() => navigate("/login")} className="text-white font-bold hover:underline cursor-pointer">
                 Login here
               </span>
             </p>

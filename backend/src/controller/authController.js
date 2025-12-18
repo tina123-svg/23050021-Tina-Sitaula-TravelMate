@@ -1,7 +1,7 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const JWT_SECRET = process.env.JWT_SECRET;
+const hashPassword = require("../utils/hashPassword");
+const comparePassword = require("../utils/comparePassword");
+const generateToken = require("../utils/generateToken");
 
 // SIGN UP
 const register = async (req, res) => {
@@ -17,24 +17,20 @@ const register = async (req, res) => {
       licenseNumber,
     } = req.body;
 
-    // Basic required fields
     if (!fullName || !email || !password) {
       return res.status(400).json({ message: "Full name, email, and password are required" });
     }
 
-    // Simple email format validation
     if (!/\S+@\S+\.\S+/.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Check if user already exists
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await hashPassword(password);
 
     const userData = {
       fullName: fullName.trim(),
@@ -44,7 +40,6 @@ const register = async (req, res) => {
     };
 
     if (role === "agency") {
-      // Agency-specific required fields
       if (!agencyName || !agencyAddress || !agencyPhone || !licenseNumber) {
         return res.status(400).json({ message: "All agency fields are required" });
       }
@@ -60,12 +55,10 @@ const register = async (req, res) => {
 
     const user = await User.create(userData);
 
-    // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    // Use generateToken 
+    const token = generateToken(user._id, user.role);
 
     res.status(201).json({
       success: true,
@@ -91,17 +84,15 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    //  Use comparePassword
+    const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = generateToken(user._id, user.role);
 
     res.json({
       success: true,

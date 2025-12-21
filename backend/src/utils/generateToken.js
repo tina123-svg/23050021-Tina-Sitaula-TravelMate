@@ -6,4 +6,8 @@ const generateToken = (id, role) => {
   });
 };
 
-module.exports = generateToken;
+const generateResetToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "50m" });
+};
+
+module.exports = { generateToken, generateResetToken };

@@ -1,7 +1,8 @@
 const User = require("../models/User");
 const hashPassword = require("../utils/hashPassword");
 const comparePassword = require("../utils/comparePassword");
-const generateToken = require("../utils/generateToken");
+const { generateToken, generateResetToken } = require("../utils/generateToken");
+const jwt = require("jsonwebtoken");
 
 // SIGN UP
 const register = async (req, res) => {
@@ -104,4 +105,72 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// FORGOT PASSWORD
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Generate reset token
+  const resetToken = generateResetToken(user._id);
+
+  console.log("Reset Token :", resetToken);
+  console.log("Reset URL: http://localhost:5000/api/auth/resetpassword/" + resetToken);
+  console.log("JWT SECRET AT GENERATION:", process.env.JWT_SECRET);
+
+
+
+  res.json({
+    message: "Reset token generated in console",
+    resetToken,
+  });
+};
+
+// RESET PASSWORD
+const resetPassword = async (req, res) => {
+  const resetToken = req.params.token;
+  const { password } = req.body;
+
+  console.log("=== RESET PASSWORD REQUEST RECEIVED ===");
+  console.log("Token received:", resetToken);
+  console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
+  if (!resetToken) {
+    return res.status(400).json({ message: "No token provided in URL" });
+  }
+
+  if (!password) {
+    return res.status(400).json({ message: "New password is required" });
+  }
+
+  try {
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    console.log("Token decoded successfully:", decoded);
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const hashed = await hashPassword(password);
+    user.password = hashed;
+    await user.save();
+
+    const authToken = generateToken(user._id, user.role);
+
+    res.json({ message: "Password reset successful", token: authToken });
+  } catch (error) {
+    console.log("JWT Verification failed:", error.name, error.message);
+    if (error.name === "TokenExpiredError") {
+      return res.status(400).json({ message: "Token has expired" });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+    return res.status(400).json({ message: "Token error: " + error.message });
+  }
+};
+module.exports = { register, login, forgotPassword, resetPassword };

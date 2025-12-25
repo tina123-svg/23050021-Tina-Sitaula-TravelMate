@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Mail, Lock, Facebook, Apple, Chrome } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:5000/api/auth";
 
@@ -22,16 +22,19 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/login`, { email, password });
-      
-      // Save token and user
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       toast.success("Login successful!");
-      // Redirect based on role or to dashboard
-      navigate("/dashboard");
+      navigate("/homepage");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Login failed");
+       const message = err.response?.data?.message || "Login failed. Please try again.";
+      if (message.includes("Invalid credentials")) {
+        toast.error("Wrong email or password");
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,7 +77,7 @@ export default function LoginPage() {
               Travel Mate
             </div>
 
-            {/* Social Buttons (you can implement later) */}
+            {/* Social Buttons */}
             <button className="w-full flex items-center justify-center gap-3 bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition">
               <Chrome size={18} />
               Continue with Google
@@ -90,7 +93,7 @@ export default function LoginPage() {
             </div>
 
             {/* Form */}
-             <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
                 <Mail size={18} className="text-gray-500" />
                 <input
@@ -128,6 +131,16 @@ export default function LoginPage() {
               Don’t have an account?
               <span onClick={() => navigate("/signup")} className="text-white ml-1 cursor-pointer hover:underline">
                 Sign up
+              </span>
+            </p>
+
+            {/* Forgot Password Link */}
+            <p className="text-center text-white/80">
+              <span
+                onClick={() => navigate("/forgot-password")}
+                className="text-white font-bold hover:underline cursor-pointer"
+              >
+                Forgot Password?
               </span>
             </p>
           </div>

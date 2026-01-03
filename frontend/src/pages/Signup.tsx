@@ -16,7 +16,7 @@ export default function SignUpPage() {
   const [agencyPhone, setAgencyPhone] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [loading, setLoading] = useState(false);
-
+ 
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +58,15 @@ export default function SignUpPage() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       toast.success("Registration successful!");
-      navigate("/dashboard"); // Or home page
+      if (res.data.message && res.data.message.includes("pending")) {
+  toast.info("Agency registration successful! Your account is pending admin approval. You'll receive an email when approved.");
+  navigate("/login");
+} else {
+  localStorage.setItem("token", res.data.token);
+  toast.success("Signup successful!");
+  navigate("/login");
+}
+      // navigate("/login");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Registration failed");
     } finally {

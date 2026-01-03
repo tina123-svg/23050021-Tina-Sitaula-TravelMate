@@ -38,6 +38,7 @@ const register = async (req, res) => {
       email: email.toLowerCase().trim(),
       password: hashed,
       role,
+      status: role === "agency" ? "pending" : "approved",
     };
 
     if (role === "agency") {
@@ -58,7 +59,15 @@ const register = async (req, res) => {
 
     const { password: _, ...userWithoutPassword } = user.toObject();
 
-    // Use generateToken 
+    if (role === "agency") {
+      return res.status(201).json({
+        success: true,
+        message: "Agency registration successful! Your account is pending admin approval.",
+        user: userWithoutPassword,
+      });
+    }
+
+    // Only generate token for non-pending users (travelers)
     const token = generateToken(user._id, user.role);
 
     res.status(201).json({
@@ -67,10 +76,10 @@ const register = async (req, res) => {
       user: userWithoutPassword,
     });
   } catch (err) {
+    console.error("Registration error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 // LOGIN
 const login = async (req, res) => {
   try {
@@ -85,12 +94,27 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    //  Use comparePassword
+    // Check password
     const match = await comparePassword(password, user.password);
     if (!match) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // BLOCK PENDING OR REJECTED AGENCIES
+    if (user.role === "agency") {
+      if (user.status === "pending") {
+        return res.status(403).json({
+          message: "Your agency account is pending approval. Please wait for admin review.",
+        });
+      }
+      if (user.status === "rejected") {
+        return res.status(403).json({
+          message: "Your agency account was rejected. Contact support for details.",
+        });
+      }
+    }
+
+    // Remove password from response
     const { password: _, ...userWithoutPassword } = user.toObject();
 
     const token = generateToken(user._id, user.role);
@@ -101,6 +125,7 @@ const login = async (req, res) => {
       user: userWithoutPassword,
     });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };

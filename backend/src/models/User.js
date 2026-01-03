@@ -23,17 +23,22 @@ const userSchema = new mongoose.Schema(
       default: "traveler",
     },
 
+    // Agency fields
     agencyName: { type: String },
     agencyAddress: { type: String },
     agencyPhone: { type: String },
     licenseNumber: { type: String },
 
-    resetOtp: {
+    // Approval status for agencies
+    status: {
       type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
-    resetOtpExpiry: {
-      type: Date
-    },
+
+    // OTP for forgot password
+    resetOtp: { type: String },
+    resetOtpExpiry: { type: Date },
   },
   { timestamps: true }
 );

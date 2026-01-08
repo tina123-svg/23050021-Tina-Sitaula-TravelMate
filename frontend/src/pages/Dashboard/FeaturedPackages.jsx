@@ -1,5 +1,5 @@
 import React from "react";
-import PackageCard from "../../components/Card"; // ← correct path if Card.jsx is in components/common or root
+import PackageCard from "../../components/Card"; 
 
 const featuredPackages = [
   {

@@ -59,6 +59,7 @@ export function WhyChooseTravelMate() {
             );
           })}
         </div>
+
       </div>
     </section>
   );

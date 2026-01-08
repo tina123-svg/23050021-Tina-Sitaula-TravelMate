@@ -1,33 +1,74 @@
-import React from "react";
-// import { useDarkMode } from "../context/DarkModeContext";
-import { Sun, Moon } from "lucide-react";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Search, User, Heart } from 'lucide-react';
 
-export default function Header() {
-  // const { darkMode, setDarkMode } = useDarkMode();
-
+const Header = () => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 shadow-md">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-blue-700 dark:text-blue-400">Travel Mate</h1>
+    <header className="sticky top-0 z-50 bg-white shadow-md">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
 
-        <nav className="hidden md:flex gap-8">
-          <a href="#" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Home</a>
-          <a href="#" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Packages</a>
-          <a href="#" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">About</a>
-          <a href="#" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Contact</a>
-        </nav>
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">T</span>
+            </div>
+            <span className="text-2xl font-bold text-blue-700">TravelMate</span>
+          </Link>
 
-        <div className="flex items-center gap-4">
-          {/* <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
-          >
-            {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
-          </button> */}
-          <a href="/login" className="text-blue-600 dark:text-blue-400 font-medium">Login</a>
-          <a href="/signup" className="bg-orange-500 text-white px-6 py-2 rounded-full hover:bg-orange-600">Sign Up</a>
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-6">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search destinations, packages..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex items-center space-x-6">
+
+            <Link to="/package" className="text-gray-700 hover:text-blue-600 font-medium">
+              Explore Trips
+            </Link>
+
+            <Link to="/my-bookings" className="text-gray-700 hover:text-blue-600 font-medium">
+              My Bookings
+            </Link>
+
+            {/* Wishlist */}
+            <Link to="/wishlist" className="p-2 hover:bg-gray-100 rounded-full">
+              <Heart className="w-5 h-5 text-gray-600" />
+            </Link>
+
+            {/* Auth buttons */}
+            <Link
+              to="/login"
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Login
+            </Link>
+
+            <Link
+              to="/signup"
+              className="bg-blue-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+            >
+              Sign Up
+            </Link>
+
+            {/* Profile */}
+            <Link to="/profile" className="p-2 hover:bg-gray-100 rounded-full">
+              <User className="w-5 h-5 text-gray-600" />
+            </Link>
+
+          </nav>
         </div>
       </div>
     </header>
   );
-}
+};
+
+export default Header;

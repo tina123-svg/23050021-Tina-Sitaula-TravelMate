@@ -1,4 +1,3 @@
-// components/package-detail/ItineraryAccordion.jsx
 import React, { useState } from "react";
 import { ChevronDown, MapPin, Coffee, Home, Camera } from "lucide-react";
 

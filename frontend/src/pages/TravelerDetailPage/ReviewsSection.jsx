@@ -1,4 +1,3 @@
-// components/package-detail/ReviewsSection.jsx
 import React, { useState } from "react";
 import { Star, ThumbsUp, CheckCircle, User } from "lucide-react";
 

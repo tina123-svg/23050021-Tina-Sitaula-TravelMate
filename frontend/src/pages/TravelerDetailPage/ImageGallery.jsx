@@ -1,4 +1,3 @@
-// components/package-detail/ImageGallery.jsx
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 

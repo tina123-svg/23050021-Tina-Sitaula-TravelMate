@@ -1,4 +1,3 @@
-// components/package-detail/BookingWidget.jsx
 import React, { useState } from "react";
 import { Calendar, Users, Tag, Shield, CreditCard } from "lucide-react";
 

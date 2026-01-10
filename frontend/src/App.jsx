@@ -9,8 +9,13 @@ import TravelerDashbord from "./pages/TravlerDashboard/Dashboard";
 import Package from "./pages/TravlerDashboard/Package";
 import ComparePackage from "./pages/TravlerDashboard/ComaprePackage";
 import PackageDetailPage from './pages/TravelerDetailPage/Detailpage';
-
-
+import BookingPage from "./pages/Booking/BookingPage";
+import BookingConfirmationPage from "./pages/Booking/BookingConfirmationPage";
+import AgencyDashboard from "./pages/AgencyDashboard/AgencyDashboard";
+import PackagesPage from "./pages/AgencyDashboard/PackagePage";
+import BookingsPage from "./pages/AgencyDashboard/BookingPage";
+import ReviewPage from "./pages/AgencyDashboard/ReviewPage";
+import ProfilePage from "./pages/AgencyDashboard/ProfilePage";
 
 export default function App() {
   return (
@@ -27,6 +32,17 @@ export default function App() {
         <Route path="/package" element={<Package />} />
         <Route path="/Compare" element={<ComparePackage />} />
         <Route path="/package/:id" element={<PackageDetailPage />} />
+        <Route path="/booking/:packageId" element={<BookingPage />} />
+        <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
+        <Route path="/agency-dashboard" element={<AgencyDashboard />} />
+        <Route path="/agency-packages" element={<PackagesPage />} />
+        <Route path="/agency-booking" element={<BookingsPage />} />
+        <Route path="/agency-Review" element={<ReviewPage />} />
+        <Route path="/agency-Profile" element={<ProfilePage />} />
+
+
+
+
 
 
       </Routes>

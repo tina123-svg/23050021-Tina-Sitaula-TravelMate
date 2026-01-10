@@ -1,4 +1,3 @@
-// components/package-detail/AgencyCard.jsx - SIMPLIFIED
 import React, { useState } from "react";
 import {
   Phone, MessageCircle, ChevronDown, ChevronUp

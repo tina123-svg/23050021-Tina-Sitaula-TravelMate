@@ -12,6 +12,13 @@ app.use(express.json());
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/users", require("./src/routes/userRoutes"));
 app.use("/api/admin", require("./src/routes/adminRoutes"));
+app.use("/api/agency", require("./src/routes/agencyRoutes"));
+app.use("/api/agency", require("./src/routes/bookingRoutes"));
+app.use("/api/agency", require("./src/routes/profileRoutes"));
+app.use("/api", require("./src/routes/travelerRoutes"));
+
+
+
 
 // Connect DB and start server
 const PORT = process.env.PORT || 5000;

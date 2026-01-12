@@ -1,70 +1,73 @@
-import React from "react";
-import PackageCard from "../../components/Card"; 
-
-const featuredPackages = [
-  {
-    title: "Everest Base Camp Trek",
-    description: "Journey to the base of the world's highest peak with experienced guides and stunning views.",
-    price: "85,000",
-    rating: 4.9,
-    reviews: 128,
-    duration: 14,
-    difficulty: "Challenging",
-    image: "/assets/images/everest.jpg",
-  },
-  {
-    title: "Annapurna Circuit Trek",
-    description: "Classic loop around Annapurna with diverse landscapes and local culture.",
-    price: "65,000",
-    rating: 4.8,
-    reviews: 94,
-    duration: 12,
-    difficulty: "Moderate",
-    image: "/assets/images/annapurna.jpg",
-  },
-  {
-    title: "Pokhara Adventure",
-    description: "Paragliding, boating, and mountain views in Nepal's lake city.",
-    price: "35,000",
-    rating: 4.7,
-    reviews: 210,
-    duration: 5,
-    difficulty: "Easy",
-    image: "/assets/images/pokhara.jpg",
-  },
-  {
-    title: "Chitwan Jungle Safari",
-    description: "Wildlife adventure spotting rhinos, tigers, and elephants.",
-    price: "25,000",
-    rating: 4.6,
-    reviews: 156,
-    duration: 3,
-    difficulty: "Easy",
-    image: "/assets/images/chitwan.jpg",
-  },
-  {
-    title: "Kathmandu Cultural Tour",
-    description: "Explore ancient temples and UNESCO sites in the capital valley.",
-    price: "18,000",
-    rating: 4.8,
-    reviews: 89,
-    duration: 4,
-    difficulty: "Easy",
-    image: "/assets/images/kathmandu.jpg",
-  },
-  {
-    title: "Langtang Valley Trek",
-    description: "Peaceful trek with Tamang culture and Himalayan views.",
-    price: "55,000",
-    rating: 4.9,
-    reviews: 67,
-    duration: 10,
-    difficulty: "Moderate",
-    image: "/assets/images/div.png",
-  },
-];
+// pages/home/FeaturedPackages.jsx
+import React, { useState, useEffect } from "react";
+import PackageCard from "../../components/Card";
+import { travelerService } from "../../services/travelerService";
 
 export default function FeaturedPackages() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [packages, setPackages] = useState([]);
+
+  useEffect(() => {
+    fetchFeaturedPackages();
+  }, []);
+
+  const fetchFeaturedPackages = async () => {
+    try {
+      setLoading(true);
+      const response = await travelerService.getFeaturedPackages();
+
+      if (response.success) {
+        setPackages(response.data);
+      } else {
+        setError(response.message || "Failed to load packages");
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Network error");
+      console.error("Featured packages error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-blue-400 mb-4">
+              Featured Packages
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-black-700 max-w-2xl mx-auto">
+              Loading featured packages...
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">Error: {error}</div>
+            <button
+              onClick={fetchFeaturedPackages}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-200">
       <div className="max-w-7xl mx-auto px-6">
@@ -79,17 +82,36 @@ export default function FeaturedPackages() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredPackages.map((pkg, index) => (
-            <PackageCard key={index} {...pkg} />
-          ))}
-        </div>
+        {packages.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {packages.map((pkg) => (
+              <PackageCard
+                key={pkg.id}
+                title={pkg.title}
+                description={pkg.description}
+                price={pkg.price?.toLocaleString()}
+                rating={pkg.rating}
+                reviews={pkg.reviews}
+                duration={pkg.duration}
+                difficulty={pkg.difficulty}
+                image={pkg.image || "/assets/images/default-package.jpg"}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">No featured packages available at the moment.</p>
+          </div>
+        )}
 
         {/* CTA */}
         <div className="text-center mt-12">
-          <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg transition">
+          <a
+            href="/packages"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg transition inline-block"
+          >
             View All Packages
-          </button>
+          </a>
         </div>
       </div>
     </section>

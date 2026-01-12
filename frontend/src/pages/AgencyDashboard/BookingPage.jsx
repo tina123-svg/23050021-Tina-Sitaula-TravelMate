@@ -1,110 +1,124 @@
-import React, { useState } from 'react';
+// pages/agency/BookingsPage.jsx
+import React, { useState, useEffect } from 'react';
 import AgencyLayout from "../../layout/Agencylayout";
-import { Search, Filter, Eye, MessageSquare, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Search, Eye, MessageSquare, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { bookingService } from '../../services/bookingService';
 
 const BookingsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    confirmedBookings: 0,
+    pendingBookings: 0,
+    totalRevenue: 0
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Mock bookings data
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      bookingId: 'TRV-2024-001',
-      package: 'Everest Base Camp Trek',
-      customer: 'John Smith',
-      email: 'john@example.com',
-      phone: '+1 234-567-890',
-      travelers: 2,
-      totalAmount: 'NPR 50,000',
-      bookingDate: '2024-03-01',
-      startDate: '2024-03-15',
-      status: 'confirmed',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 2,
-      bookingId: 'TRV-2024-002',
-      package: 'Pokhara Lakeside Tour',
-      customer: 'Sarah Johnson',
-      email: 'sarah@example.com',
-      phone: '+1 234-567-891',
-      travelers: 4,
-      totalAmount: 'NPR 48,000',
-      bookingDate: '2024-03-02',
-      startDate: '2024-03-18',
-      status: 'pending',
-      paymentStatus: 'pending'
-    },
-    {
-      id: 3,
-      bookingId: 'TRV-2024-003',
-      package: 'Chitwan Jungle Safari',
-      customer: 'Mike Wilson',
-      email: 'mike@example.com',
-      phone: '+1 234-567-892',
-      travelers: 3,
-      totalAmount: 'NPR 36,000',
-      bookingDate: '2024-03-03',
-      startDate: '2024-03-22',
-      status: 'confirmed',
-      paymentStatus: 'paid'
-    },
-    {
-      id: 4,
-      bookingId: 'TRV-2024-004',
-      package: 'Annapurna Base Camp Trek',
-      customer: 'Emma Davis',
-      email: 'emma@example.com',
-      phone: '+1 234-567-893',
-      travelers: 2,
-      totalAmount: 'NPR 44,000',
-      bookingDate: '2024-03-04',
-      startDate: '2024-03-25',
-      status: 'cancelled',
-      paymentStatus: 'refunded'
-    },
-    {
-      id: 5,
-      bookingId: 'TRV-2024-005',
-      package: 'Everest Base Camp Trek',
-      customer: 'Robert Brown',
-      email: 'robert@example.com',
-      phone: '+1 234-567-894',
-      travelers: 1,
-      totalAmount: 'NPR 25,000',
-      bookingDate: '2024-03-05',
-      startDate: '2024-03-20',
-      status: 'pending',
-      paymentStatus: 'pending'
+  // Fetch bookings on mount
+  useEffect(() => {
+    fetchBookings();
+    fetchBookingStats();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const params = {};
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (searchTerm) params.search = searchTerm;
+
+      const response = await bookingService.getBookings(params);
+
+      if (response.success) {
+        setBookings(response.data);
+      } else {
+        setMessage({ type: 'error', text: response.message });
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to load bookings'
+      });
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const fetchBookingStats = async () => {
+    try {
+      const response = await bookingService.getBookingStats();
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const handleStatusChange = async (bookingId, newStatus) => {
+    try {
+      const response = await bookingService.updateBookingStatus(bookingId, newStatus);
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Booking status updated!' });
+        fetchBookings(); // Refresh list
+        fetchBookingStats(); // Refresh stats
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update status'
+      });
+    }
+  };
+
+  const handlePaymentStatusChange = async (bookingId, paymentStatus) => {
+    try {
+      const response = await bookingService.updatePaymentStatus(bookingId, paymentStatus);
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Payment status updated!' });
+        fetchBookings(); // Refresh list
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update payment status'
+      });
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await bookingService.exportBookings({
+        status: statusFilter !== 'all' ? statusFilter : undefined
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bookings_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setMessage({ type: 'success', text: 'Bookings exported successfully!' });
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to export bookings'
+      });
+    }
+  };
 
   const statusOptions = [
-    { value: 'all', label: 'All Status', color: 'gray' },
-    { value: 'confirmed', label: 'Confirmed', color: 'green' },
-    { value: 'pending', label: 'Pending', color: 'orange' },
-    { value: 'cancelled', label: 'Cancelled', color: 'red' }
+    { value: 'all', label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'cancelled', label: 'Cancelled' }
   ];
-
-  // const paymentOptions = [
-  //   { value: 'all', label: 'All Payments', color: 'gray' },
-  //   { value: 'paid', label: 'Paid', color: 'green' },
-  //   { value: 'pending', label: 'Pending', color: 'orange' },
-  //   { value: 'refunded', label: 'Refunded', color: 'blue' }
-  // ];
-
-  const filteredBookings = bookings.filter(booking => {
-    const matchesSearch =
-      booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.package.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus = statusFilter === 'all' || booking.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -138,8 +152,8 @@ const BookingsPage = () => {
     }
   };
 
-  const getPaymentBadge = (status) => {
-    switch (status) {
+  const getPaymentBadge = (paymentStatus) => {
+    switch (paymentStatus) {
       case 'paid':
         return (
           <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
@@ -161,36 +175,21 @@ const BookingsPage = () => {
       default:
         return (
           <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-            {status}
+            {paymentStatus}
           </span>
         );
     }
   };
 
-  const handleStatusChange = (bookingId, newStatus) => {
-    setBookings(prev => prev.map(booking =>
-      booking.id === bookingId
-        ? { ...booking, status: newStatus }
-        : booking
-    ));
-  };
-
-  const exportBookings = () => {
-    // Simple export function
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + "Booking ID,Package,Customer,Travelers,Amount,Status,Booking Date\n"
-      + bookings.map(b =>
-        `${b.bookingId},${b.package},${b.customer},${b.travelers},${b.totalAmount},${b.status},${b.bookingDate}`
-      ).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "bookings_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  if (loading) {
+    return (
+      <AgencyLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-gray-600">Loading bookings...</div>
+        </div>
+      </AgencyLayout>
+    );
+  }
 
   return (
     <AgencyLayout>
@@ -202,7 +201,7 @@ const BookingsPage = () => {
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
           <button
-            onClick={exportBookings}
+            onClick={handleExport}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             <Download size={18} className="mr-2" />
@@ -211,30 +210,40 @@ const BookingsPage = () => {
         </div>
       </div>
 
+      {/* Message Display */}
+      {message.text && (
+        <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          {message.text}
+          <button
+            onClick={() => setMessage({ type: '', text: '' })}
+            className="float-right text-sm"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-gray-200">
-          <div className="text-2xl font-bold text-gray-800">{bookings.length}</div>
+          <div className="text-2xl font-bold text-gray-800">{stats.totalBookings || 0}</div>
           <div className="text-gray-600">Total Bookings</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-200">
           <div className="text-2xl font-bold text-green-600">
-            {bookings.filter(b => b.status === 'confirmed').length}
+            {stats.confirmedBookings || 0}
           </div>
           <div className="text-gray-600">Confirmed</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-200">
           <div className="text-2xl font-bold text-orange-600">
-            {bookings.filter(b => b.status === 'pending').length}
+            {stats.pendingBookings || 0}
           </div>
           <div className="text-gray-600">Pending</div>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-200">
           <div className="text-2xl font-bold text-blue-600">
-            NPR {bookings
-              .filter(b => b.paymentStatus === 'paid')
-              .reduce((sum, b) => sum + parseInt(b.totalAmount.replace(/[^0-9]/g, '')), 0)
-              .toLocaleString()}
+            NPR {stats.totalRevenue ? stats.totalRevenue.toLocaleString() : 0}
           </div>
           <div className="text-gray-600">Total Revenue</div>
         </div>
@@ -250,6 +259,7 @@ const BookingsPage = () => {
               placeholder="Search by booking ID, customer name, package, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchBookings()}
               className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
@@ -257,7 +267,10 @@ const BookingsPage = () => {
           <div className="flex gap-3">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                fetchBookings();
+              }}
               className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               {statusOptions.map(option => (
@@ -266,6 +279,12 @@ const BookingsPage = () => {
                 </option>
               ))}
             </select>
+            <button
+              onClick={fetchBookings}
+              className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Search
+            </button>
           </div>
         </div>
       </div>
@@ -287,8 +306,8 @@ const BookingsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredBookings.map(booking => (
-                <tr key={booking.id} className="hover:bg-gray-50">
+              {bookings.map(booking => (
+                <tr key={booking.id || booking._id} className="hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="font-mono font-medium text-gray-800">{booking.bookingId}</div>
                     <div className="text-sm text-gray-500">{booking.bookingDate}</div>
@@ -316,7 +335,7 @@ const BookingsPage = () => {
                       {getStatusBadge(booking.status)}
                       <select
                         value={booking.status}
-                        onChange={(e) => handleStatusChange(booking.id, e.target.value)}
+                        onChange={(e) => handleStatusChange(booking.id || booking._id, e.target.value)}
                         className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
                       >
                         <option value="pending">Pending</option>
@@ -326,7 +345,18 @@ const BookingsPage = () => {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    {getPaymentBadge(booking.paymentStatus)}
+                    <div className="flex flex-col gap-2">
+                      {getPaymentBadge(booking.paymentStatus)}
+                      <select
+                        value={booking.paymentStatus}
+                        onChange={(e) => handlePaymentStatusChange(booking.id || booking._id, e.target.value)}
+                        className="text-xs border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="refunded">Refunded</option>
+                      </select>
+                    </div>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2">
@@ -352,7 +382,7 @@ const BookingsPage = () => {
       </div>
 
       {/* Empty State */}
-      {filteredBookings.length === 0 && (
+      {bookings.length === 0 && (
         <div className="text-center py-12">
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock size={40} className="text-gray-400" />
@@ -361,35 +391,6 @@ const BookingsPage = () => {
           <p className="text-gray-600">Try adjusting your search or filters</p>
         </div>
       )}
-
-      {/* Summary */}
-      {/* <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-        <h3 className="font-bold text-gray-800 mb-3">📊 Bookings Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{bookings.length}</div>
-            <div className="text-sm text-gray-600">Total Bookings</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {bookings.filter(b => b.status === 'confirmed').length}
-            </div>
-            <div className="text-sm text-gray-600">Confirmed</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-orange-600">
-              {bookings.filter(b => b.paymentStatus === 'pending').length}
-            </div>
-            <div className="text-sm text-gray-600">Pending Payment</div>
-          </div>
-          <div className="text-center p-3 bg-white rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">
-              {bookings.reduce((sum, b) => sum + b.travelers, 0)}
-            </div>
-            <div className="text-sm text-gray-600">Total Travelers</div>
-          </div>
-        </div>
-      </div> */}
     </AgencyLayout>
   );
 };

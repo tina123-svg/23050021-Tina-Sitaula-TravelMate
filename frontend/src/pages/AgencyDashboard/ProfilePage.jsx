@@ -1,74 +1,149 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AgencyLayout from '../../layout/Agencylayout';
-import { Save, Upload, Globe, Phone, Mail, MapPin, Building, Link, Lock, Bell, Shield } from 'lucide-react';
+import { Save, Upload } from 'lucide-react';
+import { profileService } from '../../services/profileService';
 
 const ProfilePage = () => {
   // Agency profile data
   const [profile, setProfile] = useState({
-    // Basic Info
-    agencyName: 'Himalayan Adventures',
-    tagline: 'Your Gateway to the Himalayas',
-    description: 'Professional trekking and tour agency with 10+ years of experience in organizing memorable adventures in Nepal.',
-    email: 'info@himalayanadventures.com',
-    phone: '+977-1-1234567',
-    mobile: '+977-9801234567',
-    address: 'Thamel, Kathmandu, Nepal',
-    website: 'www.himalayanadventures.com',
-
-
-
-    // Business Details
-    establishedYear: '2014',
-    licenseNumber: 'TA-12345',
-    taxNumber: '123456789',
-
-    // Contact Person
-    contactPerson: 'Rajesh Thapa',
-    contactPosition: 'Operations Manager',
-    contactEmail: 'rajesh@himalayanadventures.com',
-    contactPhone: '+977-9807654321',
-
-
-
-
-    // Security
+    fullName: '',
+    email: '',
+    agencyPhone: '',
+    agencyAddress: '',
+    agencyName: '',
+    licenseNumber: '',
+    // For password change
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    agencyDescription: '',
   });
 
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Fetch profile on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await profileService.getProfile();
+
+      if (response.success) {
+        // Map backend fields to frontend state
+        const userData = response.data.user;
+        setProfile({
+          fullName: userData.fullName || '',
+          email: userData.email || '',
+          agencyPhone: userData.agencyPhone || '',
+          agencyAddress: userData.agencyAddress || '',
+          agencyName: userData.agencyName || '',
+          licenseNumber: userData.licenseNumber || '',
+          agencyDescription: userData.agencyDescription || '',
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to load profile'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setProfile(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
-  const handleSave = () => {
-    // Here you would typically send data to backend
-    console.log('Saving profile:', profile);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const handleSaveProfile = async () => {
+    try {
+      // Prepare data for backend (frontend fields → backend fields)
+      const profileData = {
+        fullName: profile.fullName,
+        agencyPhone: profile.agencyPhone,
+        agencyAddress: profile.agencyAddress,
+        agencyName: profile.agencyName,
+        licenseNumber: profile.licenseNumber,
+        agencyDescription: profile.agencyDescription
+
+      };
+
+      const response = await profileService.updateProfile(profileData);
+
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        setIsEditing(false);
+        // Refresh profile data
+        fetchProfile();
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update profile'
+      });
+    }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Handle image upload logic here
-      console.log('Uploading image:', file.name);
-      alert('Logo uploaded successfully!');
+  const handleChangePassword = async () => {
+    try {
+      if (profile.newPassword !== profile.confirmPassword) {
+        setMessage({ type: 'error', text: 'New passwords do not match' });
+        return;
+      }
+
+      const passwordData = {
+        currentPassword: profile.currentPassword,
+        newPassword: profile.newPassword
+      };
+
+      const response = await profileService.changePassword(passwordData);
+
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Password changed successfully!' });
+        // Clear password fields
+        setProfile(prev => ({
+          ...prev,
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        }));
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to change password'
+      });
     }
   };
 
   const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: Building },
-    { id: 'contact', label: 'Contact', icon: Phone },
-    { id: 'security', label: 'Security', icon: Lock }
+    { id: 'basic', label: 'Basic Info' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'security', label: 'Security' }
   ];
+
+  if (loading) {
+    return (
+      <AgencyLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-gray-600">Loading profile...</div>
+        </div>
+      </AgencyLayout>
+    );
+  }
 
   return (
     <AgencyLayout>
@@ -88,7 +163,7 @@ const ProfilePage = () => {
                 Cancel
               </button>
               <button
-                onClick={handleSave}
+                onClick={handleSaveProfile}
                 className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 flex items-center"
               >
                 <Save size={20} className="mr-2" />
@@ -106,6 +181,13 @@ const ProfilePage = () => {
         </div>
       </div>
 
+      {/* Message Display */}
+      {message.text && (
+        <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          {message.text}
+        </div>
+      )}
+
       {/* Profile Card */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-100 p-6 mb-8">
         <div className="flex flex-col md:flex-row items-center md:items-start">
@@ -113,7 +195,9 @@ const ProfilePage = () => {
           <div className="mb-6 md:mb-0 md:mr-8">
             <div className="relative">
               <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center">
-                <span className="text-4xl font-bold text-green-600">HA</span>
+                <span className="text-4xl font-bold text-green-600">
+                  {profile.fullName?.charAt(0) || 'A'}
+                </span>
               </div>
               {isEditing && (
                 <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-50">
@@ -122,7 +206,10 @@ const ProfilePage = () => {
                     type="file"
                     className="hidden"
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={(e) => {
+                      // Handle image upload later
+                      console.log('Image upload:', e.target.files[0]);
+                    }}
                   />
                 </label>
               )}
@@ -132,16 +219,20 @@ const ProfilePage = () => {
           {/* Agency Info */}
           <div className="flex-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start mb-2">
-              <h2 className="text-2xl font-bold text-gray-800 mr-3">{profile.agencyName}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mr-3">{profile.fullName}</h2>
               <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
                 ✓ Verified Agency
               </span>
             </div>
-            <p className="text-gray-600 text-lg mb-2">{profile.tagline}</p>
-            <p className="text-gray-500">{profile.description}</p>
+            {profile.agencyDescription && (
+              <p className="text-gray-600 mt-2 mb-3 max-w-2xl leading-relaxed">
+                {profile.agencyDescription}
+              </p>
+            )}
+            <p className="text-gray-500 mb-4">License: {profile.licenseNumber}</p>
 
             {/* Quick Stats */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4">
+            <div className="flex flex-wrap justify-center md:justify-start gap-4">
               <div className="text-center">
                 <div className="text-xl font-bold text-gray-800">8</div>
                 <div className="text-sm text-gray-600">Active Packages</div>
@@ -149,14 +240,6 @@ const ProfilePage = () => {
               <div className="text-center">
                 <div className="text-xl font-bold text-gray-800">4.8</div>
                 <div className="text-sm text-gray-600">Avg Rating</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-800">42</div>
-                <div className="text-sm text-gray-600">Reviews</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-800">{profile.establishedYear}</div>
-                <div className="text-sm text-gray-600">Established</div>
               </div>
             </div>
           </div>
@@ -167,22 +250,18 @@ const ProfilePage = () => {
       <div className="mb-8">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8 overflow-x-auto">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-3 px-1 font-medium text-sm border-b-2 whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-green-600 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                >
-                  <Icon size={18} className="mr-2" />
-                  {tab.label}
-                </button>
-              );
-            })}
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center py-3 px-1 font-medium text-sm border-b-2 whitespace-nowrap ${activeTab === tab.id
+                  ? 'border-green-600 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </nav>
         </div>
       </div>
@@ -201,50 +280,8 @@ const ProfilePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="agencyName"
-                  value={profile.agencyName}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tagline
-                </label>
-                <input
-                  type="text"
-                  name="tagline"
-                  value={profile.tagline}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={profile.description}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  rows="4"
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Established Year
-                </label>
-                <input
-                  type="text"
-                  name="establishedYear"
-                  value={profile.establishedYear}
+                  name="fullName"
+                  value={profile.fullName}
                   onChange={handleChange}
                   disabled={!isEditing}
                   className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
@@ -265,7 +302,24 @@ const ProfilePage = () => {
                 />
               </div>
             </div>
+
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                name="agencyDescription"
+                value={profile.agencyDescription}
+                onChange={handleChange}
+                disabled={!isEditing}
+                rows="4"
+                className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+              />
+            </div>
           </div>
+
+
         )}
 
         {/* Contact Tab */}
@@ -275,114 +329,40 @@ const ProfilePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Mail size={16} className="mr-2" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address *
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={profile.email}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <Phone size={16} className="mr-2" />
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                  disabled
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mobile Number *
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
-                  name="mobile"
-                  value={profile.mobile}
+                  name="agencyPhone"
+                  value={profile.agencyPhone}
                   onChange={handleChange}
                   disabled={!isEditing}
                   className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <MapPin size={16} className="mr-2" />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Address
                 </label>
                 <input
                   type="text"
-                  name="address"
-                  value={profile.address}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Person *
-                </label>
-                <input
-                  type="text"
-                  name="contactPerson"
-                  value={profile.contactPerson}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Position
-                </label>
-                <input
-                  type="text"
-                  name="contactPosition"
-                  value={profile.contactPosition}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  name="contactEmail"
-                  value={profile.contactEmail}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Contact Phone
-                </label>
-                <input
-                  type="tel"
-                  name="contactPhone"
-                  value={profile.contactPhone}
+                  name="agencyAddress"
+                  value={profile.agencyAddress}
                   onChange={handleChange}
                   disabled={!isEditing}
                   className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
@@ -391,9 +371,6 @@ const ProfilePage = () => {
             </div>
           </div>
         )}
-
-
-
 
         {/* Security Tab */}
         {activeTab === 'security' && (
@@ -444,56 +421,18 @@ const ProfilePage = () => {
               </div>
 
               <button
-                onClick={() => {
-                  if (!profile.currentPassword || !profile.newPassword) {
-                    alert('Please fill all password fields');
-                    return;
-                  }
-                  if (profile.newPassword !== profile.confirmPassword) {
-                    alert('New passwords do not match');
-                    return;
-                  }
-                  alert('Password changed successfully!');
-                  setProfile(prev => ({
-                    ...prev,
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
-                  }));
-                }}
+                onClick={handleChangePassword}
                 className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
               >
                 Change Password
               </button>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div>
-                  <div className="font-medium text-red-800 flex items-center">
-                    <Shield size={18} className="mr-2" />
-                    Account Deletion
-                  </div>
-                  <div className="text-sm text-red-600">Once deleted, all data will be permanently removed</div>
-                </div>
-                <button
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                      alert('Account deletion requested. We\'ll contact you for confirmation.');
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700"
-                >
-                  Delete Account
-                </button>
-              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Save Button for Mobile */}
-      {isEditing && (
+      {isEditing && activeTab !== 'security' && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
           <div className="flex space-x-3">
             <button
@@ -503,7 +442,7 @@ const ProfilePage = () => {
               Cancel
             </button>
             <button
-              onClick={handleSave}
+              onClick={handleSaveProfile}
               className="flex-1 px-4 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 flex items-center justify-center"
             >
               <Save size={20} className="mr-2" />

@@ -17,7 +17,7 @@ exports.getFeaturedPackages = async (req, res) => {
       title: pkg.title,
       description: pkg.description,
       price: pkg.price,
-      rating: pkg.rating?.average || 0,
+      rating: pkg.rating?.average || pkg.rating || 0,
       reviews: pkg.rating?.count || 0,
       duration: pkg.duration,
       difficulty: pkg.difficulty,
@@ -107,7 +107,7 @@ exports.getAllPackages = async (req, res) => {
       title: pkg.title,
       description: pkg.description,
       price: pkg.price,
-      rating: pkg.rating?.average || 0,
+      rating: pkg.rating?.average || pkg.rating || 0,
       reviews: pkg.rating?.count || 0,
       duration: pkg.duration,
       difficulty: pkg.difficulty,
@@ -155,7 +155,11 @@ exports.getPackageDetails = async (req, res) => {
       _id: req.params.id,
       status: "active"
     })
-      .select("-__v -agencyId");
+      .select("-__v")
+      .populate({
+        path: 'agencyId',
+        select: 'fullName email agencyName agencyPhone agencyDescription agencyAddress licenseNumber avatar'
+      });
 
     if (!package) {
       return res.status(404).json({
@@ -164,12 +168,28 @@ exports.getPackageDetails = async (req, res) => {
       });
     }
 
-    // Format for frontend
+    // Format agency details - check what fields your User model has
+    const agencyDetails = package.agencyId ? {
+      name: package.agencyId.agencyName || package.agencyId.fullName || "Travel Agency",
+      contact: package.agencyId.agencyPhone || "Not provided", // ← THIS LINE
+      description: package.agencyId.agencyDescription || "Professional travel agency",
+      email: package.agencyId.email,
+      address: package.agencyId.agencyAddress,
+      licenseNumber: package.agencyId.licenseNumber
+    } : {
+      name: "Travel Agency",
+      contact: "Not provided",
+      description: "Professional travel agency",
+      email: "contact@agency.com"
+    };
+
+    // Format the response
     const formattedPackage = {
       id: package._id,
       title: package.title,
+      tagline: package.tagline || package.description?.substring(0, 100) + "...",
       description: package.description,
-      overview: package.overview,
+      detailedDescription: package.overview || package.description,
       price: package.price,
       duration: package.duration,
       difficulty: package.difficulty,
@@ -183,11 +203,29 @@ exports.getPackageDetails = async (req, res) => {
       itinerary: package.itinerary,
       whatToBring: package.whatToBring,
       physicalRequirements: package.physicalRequirements,
-      rating: package.rating?.average || 0,
-      reviews: package.rating?.count || 0,
-      featured: package.featured,
+      rating: typeof package.rating === 'object' ? package.rating?.average || 5 : package.rating || 5,
+      reviews: typeof package.rating === 'object' ? package.rating?.count || 0 : package.reviews || 0,
+      featured: package.featured || false,
       images: package.images || [],
-      createdAt: package.createdAt
+      createdAt: package.createdAt,
+      // ADD THESE:
+      agencyDetails: agencyDetails,
+      maxTravelers: package.groupSize?.max || 12,
+      minTravelers: package.groupSize?.min || 2,
+      // Generate available dates if not in DB
+      availableDates: package.availableDates || generateAvailableDates(package.duration),
+      // Add other fields for frontend
+      cancellationPolicy: package.cancellationPolicy || {
+        freeCancellationDays: 30,
+        partialRefundDays: 14,
+        noRefundDays: 7
+      },
+      faqs: package.faqs || [
+        {
+          question: "What is the difficulty level?",
+          answer: `${package.difficulty || "Moderate"}. ${package.physicalRequirements || "Requires basic fitness."}`
+        }
+      ]
     };
 
     return res.status(200).json({
@@ -210,6 +248,25 @@ exports.getPackageDetails = async (req, res) => {
     });
   }
 };
+
+// Helper function for dates
+function generateAvailableDates(duration) {
+  const dates = [];
+  const today = new Date();
+
+  for (let i = 1; i <= 6; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + (i * 10));
+
+    dates.push({
+      date: date.toISOString().split('T')[0],
+      status: "available",
+      seats: Math.floor(Math.random() * 10) + 3
+    });
+  }
+
+  return dates;
+}
 
 // @desc    Search packages
 exports.searchPackages = async (req, res) => {
@@ -262,3 +319,4 @@ exports.searchPackages = async (req, res) => {
     });
   }
 };
+

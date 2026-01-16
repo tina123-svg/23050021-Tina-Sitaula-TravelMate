@@ -1,39 +1,82 @@
-// components/packages/PackageCardEnhanced.jsx
 import React from "react";
-import { Star, MapPin, Calendar, Check, Scale } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Star, MapPin, Calendar, Check, Scale, Heart } from "lucide-react";
 
-const PackageCardEnhanced = ({ package: pkg, isComparing, onCompareToggle }) => {
-  const canCompare = true; // Always true for now, could add logic later
+const PackageCardEnhanced = ({ pkg, isComparing, onCompareToggle, onViewDetails }) => {
+  const ratingValue = typeof pkg.rating === 'object' ? pkg.rating?.average || 0 : pkg.rating || 0;
+  const reviewCount = typeof pkg.rating === 'object' ? pkg.rating?.count || 0 : pkg.reviews || 0;
+  const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = React.useState(false);
+
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    setIsFavorite(!isFavorite);
+    // TODO: Add to wishlist API call
+  };
+
+  const handleCompareClick = (e) => {
+    e.stopPropagation();
+    onCompareToggle();
+  };
+
+  const handleCardClick = () => {
+    if (onViewDetails) {
+      onViewDetails();
+    } else {
+      navigate(`/package/${pkg.id}`);
+    }
+  };
+
+  const handleViewDetailsClick = (e) => {
+    e.stopPropagation();
+    navigate(`/package/${pkg.id}`);
+  };
+
+  const formatPrice = (price) => {
+    if (typeof price === 'number') {
+      return `NPR ${price.toLocaleString()}`;
+    }
+    return `NPR ${price}`;
+  };
 
   return (
-    <div className={`relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border ${isComparing
-      ? "border-blue-500 ring-2 ring-blue-200"
-      : "border-gray-200 hover:border-gray-300"
-      }`}>
-
+    <div
+      onClick={handleCardClick}
+      className={`relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border cursor-pointer ${isComparing
+        ? "border-blue-500 ring-2 ring-blue-200"
+        : "border-gray-200 hover:border-gray-300"
+        }`}
+    >
       {/* Compare Overlay */}
       <div className={`absolute top-3 right-3 z-20 ${isComparing ? "opacity-100" : "opacity-0 hover:opacity-100"
         } transition-opacity`}>
         <button
-          onClick={onCompareToggle}
-          disabled={!canCompare && !isComparing}
+          onClick={handleCompareClick}
           className={`flex items-center justify-center w-10 h-10 rounded-full shadow-lg ${isComparing
             ? "bg-blue-600 text-white"
             : "bg-white/90 hover:bg-white text-gray-700"
-            } ${!canCompare && !isComparing ? "opacity-50 cursor-not-allowed" : ""}`}
+            }`}
           title={isComparing ? "Remove from compare" : "Add to compare"}
         >
-          {isComparing ? (
-            <Check size={20} />
-          ) : (
-            <Scale size={18} />
-          )}
+          {isComparing ? <Check size={20} /> : <Scale size={18} />}
         </button>
       </div>
 
+      {/* Favorite Button */}
+      <button
+        onClick={handleFavoriteClick}
+        className="absolute top-3 left-3 z-20 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center"
+        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      >
+        <Heart
+          size={20}
+          className={isFavorite ? "fill-red-500 text-red-500" : "text-gray-700"}
+        />
+      </button>
+
       {/* Compare Badge */}
       {isComparing && (
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-14 left-3 z-10">
           <div className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
             <Check size={12} />
             Comparing
@@ -44,32 +87,23 @@ const PackageCardEnhanced = ({ package: pkg, isComparing, onCompareToggle }) => 
       {/* Image */}
       <div className="relative h-56 overflow-hidden">
         <img
-          src={pkg.image}
+          src={pkg.image || "/assets/images/default-package.jpg"}
           alt={pkg.title}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            e.target.src = "/assets/images/default-package.jpg";
+          }}
         />
 
         {/* Price Badge */}
         <div className="absolute bottom-3 right-3 bg-orange-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg">
-          NPR {pkg.price}
+          {formatPrice(pkg.price)}
         </div>
 
-        {/* Verified Agency Badge */}
-        {pkg.verified && (
-          <div className="absolute bottom-3 left-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg flex items-center gap-1">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Verified Agency
-          </div>
-        )}
-
-        {/* Featured Badge */}
-        {pkg.featured && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-            ✨ Featured
-          </div>
-        )}
+        {/* Category Badge */}
+        <div className="absolute bottom-3 left-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+          {pkg.category || "Package"}
+        </div>
       </div>
 
       {/* Content */}
@@ -81,59 +115,53 @@ const PackageCardEnhanced = ({ package: pkg, isComparing, onCompareToggle }) => 
           </h3>
           <div className="flex items-center bg-blue-50 px-2 py-1 rounded-lg min-w-[60px] justify-center">
             <Star size={14} className="fill-yellow-400 text-yellow-400 mr-1" />
-            <span className="font-bold text-sm">{pkg.rating}</span>
-            <span className="text-xs text-gray-500 ml-1">({pkg.reviews})</span>
+            <span className="font-bold text-sm">{ratingValue || 5}</span>
+            <span className="text-xs text-gray-500 ml-1">({reviewCount || 0})</span>
           </div>
         </div>
 
         {/* Destination */}
         <div className="flex items-center text-gray-600 text-sm mb-3">
-          <MapPin size={16} className="mr-2" />
-          <span className="line-clamp-1">{pkg.destination}</span>
+          <MapPin size={16} className="mr-2 flex-shrink-0" />
+          <span className="line-clamp-1">{pkg.destination || "Multiple destinations"}</span>
         </div>
 
         {/* Description */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {pkg.description}
+          {pkg.description || "Experience this amazing adventure package."}
         </p>
 
         {/* Details Row */}
         <div className="flex items-center justify-between text-sm text-gray-500 mb-5">
           <div className="flex items-center">
-            <Calendar size={14} className="mr-2" />
-            <span>{pkg.duration} days</span>
+            <Calendar size={14} className="mr-2 flex-shrink-0" />
+            <span>{pkg.duration || 1} day{pkg.duration !== 1 ? 's' : ''}</span>
           </div>
-          <span className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium">
-            {pkg.difficulty}
+          <span className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium capitalize">
+            {pkg.difficulty || "Easy"}
           </span>
-        </div>
-
-        {/* Agency Info */}
-        <div className="flex items-center justify-between mb-5 pb-4 border-b">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-bold text-xs">
-                {pkg.agency?.charAt(0) || "A"}
-              </span>
-            </div>
-            <div>
-              <div className="text-sm font-medium text-gray-700">{pkg.agency}</div>
-              <div className="text-xs text-gray-500">{pkg.category}</div>
-            </div>
-          </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition text-center">
+          <button
+            onClick={handleViewDetailsClick}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition text-center"
+          >
             View Details
           </button>
 
-          <button className={`px-4 py-3 rounded-lg border font-medium transition ${isComparing
-            ? "border-blue-600 text-blue-600 bg-blue-50"
-            : "border-gray-300 text-gray-700 hover:border-gray-400"
-            }`}>
-            ❤️
+          <button
+            onClick={handleFavoriteClick}
+            className={`px-4 py-3 rounded-lg border font-medium transition ${isFavorite
+              ? "border-red-500 text-red-500 bg-red-50"
+              : "border-gray-300 text-gray-700 hover:border-gray-400"
+              }`}
+          >
+            <Heart
+              size={20}
+              className={isFavorite ? "fill-red-500" : ""}
+            />
           </button>
         </div>
 

@@ -87,6 +87,7 @@ export default function FeaturedPackages() {
             {packages.map((pkg) => (
               <PackageCard
                 key={pkg.id}
+                id={pkg.id}
                 title={pkg.title}
                 description={pkg.description}
                 price={pkg.price?.toLocaleString()}

@@ -7,10 +7,23 @@ const {
   searchPackages
 } = require("../controller/travellerPackageController");
 
-// Public routes (no auth required)
+const {
+  getPackageReviews,
+  submitReview,
+  markHelpful
+} = require("../controller/reviewController");
+
+const { protect } = require("../middleware/authMiddleware");
+
+// Public routes
 router.get("/packages/featured", getFeaturedPackages);
 router.get("/packages", getAllPackages);
 router.get("/packages/:id", getPackageDetails);
 router.get("/packages/search", searchPackages);
+router.get("/packages/:id/reviews", getPackageReviews);
 
-module.exports = router;
+// Protected routes (need login)
+router.post("/packages/:id/reviews", protect, submitReview);
+router.post("/reviews/:reviewId/helpful", protect, markHelpful);
+
+module.exports = router;  

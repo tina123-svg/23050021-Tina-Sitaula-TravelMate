@@ -1,8 +1,16 @@
-// components/ActiveFilters.jsx - UPDATED
 import React from "react";
 import { X } from "lucide-react";
 
-const ActiveFilters = ({ filters, setFilters, searchQuery, setSearchQuery }) => {
+const ActiveFilters = ({ filters = {}, setFilters, searchQuery, setSearchQuery }) => {
+  // Add default values for filters
+  const safeFilters = {
+    priceRange: filters.priceRange || [0, 200000],
+    categories: filters.categories || [],
+    destinations: filters.destinations || [],
+    rating: filters.rating || 0,
+    duration: filters.duration || []
+  };
+
   const activeFilters = [];
 
   // Search filter
@@ -15,49 +23,55 @@ const ActiveFilters = ({ filters, setFilters, searchQuery, setSearchQuery }) => 
   }
 
   // Price filter
-  if (filters.priceRange[1] < 200000) {
+  if (safeFilters.priceRange[1] < 200000) {
     activeFilters.push({
       key: "price",
-      label: `Up to ₹${filters.priceRange[1].toLocaleString()}`,
-      remove: () => setFilters(prev => ({ ...prev, priceRange: [0, 200000] }))
+      label: `Up to ₹${safeFilters.priceRange[1].toLocaleString()}`,
+      remove: () => setFilters(prev => ({
+        ...prev,
+        priceRange: [0, 200000]
+      }))
     });
   }
 
   // Category filters
-  filters.categories.forEach(category => {
+  safeFilters.categories.forEach(category => {
     activeFilters.push({
       key: `category-${category}`,
       label: category,
       remove: () => setFilters(prev => ({
         ...prev,
-        categories: prev.categories.filter(c => c !== category)
+        categories: (prev.categories || []).filter(c => c !== category)
       }))
     });
   });
 
   // Destination filters
-  filters.destinations.forEach(destination => {
+  safeFilters.destinations.forEach(destination => {
     activeFilters.push({
       key: `destination-${destination}`,
       label: destination,
       remove: () => setFilters(prev => ({
         ...prev,
-        destinations: prev.destinations.filter(d => d !== destination)
+        destinations: (prev.destinations || []).filter(d => d !== destination)
       }))
     });
   });
 
   // Rating filter
-  if (filters.rating > 0) {
+  if (safeFilters.rating > 0) {
     activeFilters.push({
       key: "rating",
-      label: `${filters.rating}+ Stars`,
-      remove: () => setFilters(prev => ({ ...prev, rating: 0 }))
+      label: `${safeFilters.rating}+ Stars`,
+      remove: () => setFilters(prev => ({
+        ...prev,
+        rating: 0
+      }))
     });
   }
 
   // Duration filters
-  filters.duration.forEach(duration => {
+  safeFilters.duration.forEach(duration => {
     const label = {
       short: "1-7 Days",
       medium: "8-14 Days",
@@ -69,7 +83,7 @@ const ActiveFilters = ({ filters, setFilters, searchQuery, setSearchQuery }) => 
       label,
       remove: () => setFilters(prev => ({
         ...prev,
-        duration: prev.duration.filter(d => d !== duration)
+        duration: (prev.duration || []).filter(d => d !== duration)
       }))
     });
   });

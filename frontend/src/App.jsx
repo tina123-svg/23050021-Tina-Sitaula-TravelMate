@@ -31,7 +31,7 @@ export default function App() {
         <Route path="/traveler-dashboard" element={<TravelerDashbord />} />
         <Route path="/package" element={<Package />} />
         <Route path="/Compare" element={<ComparePackage />} />
-        <Route path="/package/:id" element={<PackageDetailPage />} />
+        <Route path="/package/:id" element={<PackageDetailPage />} /> 
         <Route path="/booking/:packageId" element={<BookingPage />} />
         <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
         <Route path="/agency-dashboard" element={<AgencyDashboard />} />
@@ -52,4 +52,3 @@ export default function App() {
   );
 }
 
-// cawd924  

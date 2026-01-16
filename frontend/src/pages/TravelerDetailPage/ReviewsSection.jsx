@@ -1,56 +1,102 @@
-import React, { useState } from "react";
-import { Star, ThumbsUp, CheckCircle, User } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Star, ThumbsUp, CheckCircle, User, Loader } from "lucide-react";
+import { packageDetailService } from "../../services/packageDetailsService"; 
 
-const ReviewsSection = ({ rating, reviewCount }) => {
+const ReviewsSection = ({ rating, reviewCount, packageId }) => {
   const [sortBy, setSortBy] = useState("recent");
+  const [reviews, setReviews] = useState([]);
+  const [ratingBreakdown, setRatingBreakdown] = useState([]);
+  const [averageRating, setAverageRating] = useState(rating || 0);
+  const [totalReviews, setTotalReviews] = useState(reviewCount || 0);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newReview, setNewReview] = useState({
+    rating: 5,
+    comment: "",
+    travelerName: ""
+  });
 
-  // Sample reviews data
-  const reviews = [
-    {
-      id: 1,
-      name: "Alex Johnson",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      rating: 5,
-      date: "2 weeks ago",
-      comment: "Absolutely incredible experience! The guides were knowledgeable, the scenery breathtaking. Everest Base Camp was a dream come true.",
-      helpful: 24,
-      verified: true,
-      tripDate: "March 2024",
-      highlights: ["Knowledgeable guides", "Well-organized", "Great food"]
-    },
-    {
-      id: 2,
-      name: "Sarah Miller",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      rating: 4,
-      date: "1 month ago",
-      comment: "Great trek with professional guides. Accommodation was basic but clean. Would recommend bringing extra snacks.",
-      helpful: 18,
-      verified: true,
-      tripDate: "February 2024",
-      highlights: ["Professional team", "Good value"]
-    },
-    {
-      id: 3,
-      name: "Robert Chen",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      rating: 5,
-      date: "2 months ago",
-      comment: "Life-changing experience! The team took great care of us. The sunrise at Kala Patthar was worth every step.",
-      helpful: 32,
-      verified: true,
-      tripDate: "January 2024",
-      highlights: ["Life-changing", "Excellent support", "Memorable sunrise"]
+  // Fetch reviews
+  useEffect(() => {
+    if (packageId) {
+      fetchReviews();
     }
-  ];
+  }, [packageId, sortBy]);
 
-  const ratingBreakdown = [
-    { stars: 5, count: 98, percent: 76 },
-    { stars: 4, count: 22, percent: 17 },
-    { stars: 3, count: 6, percent: 5 },
-    { stars: 2, count: 1, percent: 1 },
-    { stars: 1, count: 1, percent: 1 }
-  ];
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await packageDetailService.getPackageReviews(packageId, 1, sortBy);
+
+      if (response.success) {
+        setReviews(response.data.reviews || []);
+        setRatingBreakdown(response.data.ratingBreakdown || []);
+        setAverageRating(response.data.averageRating || rating);
+        setTotalReviews(response.data.totalReviews || reviewCount);
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+
+    if (!newReview.comment.trim()) {
+      alert("Please enter your review comment");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await packageDetailService.submitReview(packageId, {
+        ...newReview,
+        packageId: packageId
+      });
+
+      if (response.success) {
+        // Add new review to list
+        setReviews([response.data, ...reviews]);
+        setTotalReviews(totalReviews + 1);
+        setNewReview({ rating: 5, comment: "", travelerName: "" });
+        setShowReviewForm(false);
+        alert("Review submitted successfully!");
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMarkHelpful = async (reviewId) => {
+    try {
+      const response = await packageDetailService.markReviewHelpful(reviewId);
+      if (response.success) {
+        // Update helpful count in local state
+        setReviews(reviews.map(review =>
+          review.id === reviewId
+            ? { ...review, helpful: response.helpfulCount }
+            : review
+        ));
+      }
+    } catch (error) {
+      console.error("Error marking helpful:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <Loader className="animate-spin h-8 w-8 mx-auto text-blue-600" />
+        <p className="text-gray-600 mt-2">Loading reviews...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -59,14 +105,14 @@ const ReviewsSection = ({ rating, reviewCount }) => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Traveler Reviews</h2>
           <div className="flex items-center">
             <div className="flex items-center mr-4">
-              <div className="text-4xl font-bold mr-2">{rating}</div>
+              <div className="text-4xl font-bold mr-2">{averageRating.toFixed(1)}</div>
               <div>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
                       size={20}
-                      className={`${i < Math.floor(rating)
+                      className={`${i < Math.floor(averageRating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-gray-300"
                         }`}
@@ -74,7 +120,7 @@ const ReviewsSection = ({ rating, reviewCount }) => {
                   ))}
                 </div>
                 <div className="text-sm text-gray-600">
-                  Based on {reviewCount} reviews
+                  Based on {totalReviews} reviews
                 </div>
               </div>
             </div>
@@ -93,9 +139,9 @@ const ReviewsSection = ({ rating, reviewCount }) => {
             className="border border-gray-300 rounded-lg px-4 py-2"
           >
             <option value="recent">Most Recent</option>
-            <option value="helpful">Most Helpful</option>
             <option value="highest">Highest Rated</option>
             <option value="lowest">Lowest Rated</option>
+            <option value="helpful">Most Helpful</option>
           </select>
         </div>
       </div>
@@ -104,126 +150,213 @@ const ReviewsSection = ({ rating, reviewCount }) => {
       <div className="mb-8">
         <h3 className="font-bold text-gray-700 mb-3">Rating Breakdown</h3>
         <div className="space-y-2">
-          {ratingBreakdown.map((item) => (
-            <div key={item.stars} className="flex items-center">
-              <div className="w-16 text-sm text-gray-600">
-                {item.stars} star{item.stars !== 1 ? 's' : ''}
-              </div>
-              <div className="flex-1 mx-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-yellow-400 h-2 rounded-full"
-                    style={{ width: `${item.percent}%` }}
-                  ></div>
+          {ratingBreakdown.length > 0 ? (
+            ratingBreakdown.map((item) => (
+              <div key={item.stars} className="flex items-center">
+                <div className="w-16 text-sm text-gray-600">
+                  {item.stars} star{item.stars !== 1 ? 's' : ''}
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-yellow-400 h-2 rounded-full"
+                      style={{ width: `${item.percent}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="w-12 text-sm text-gray-600 text-right">
+                  {item.count}
                 </div>
               </div>
-              <div className="w-12 text-sm text-gray-600 text-right">
-                {item.count}
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-gray-500">No rating data available yet.</p>
+          )}
         </div>
       </div>
 
       {/* Reviews List */}
       <div className="space-y-6">
-        {reviews.map((review) => (
-          <div key={review.id} className="border border-gray-200 rounded-xl p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
-                  <img
-                    src={review.avatar}
-                    alt={review.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center">
-                    <h4 className="font-bold text-gray-800 mr-2">{review.name}</h4>
-                    {review.verified && (
-                      <CheckCircle size={16} className="text-green-500" />
-                    )}
-                  </div>
-                  <div className="flex items-center text-gray-600 text-sm">
-                    <div className="flex mr-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          className={`${i < review.rating
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
-                            }`}
-                        />
-                      ))}
-                    </div>
-                    <span>•</span>
-                    <span className="ml-2">{review.date}</span>
-                    <span className="mx-2">•</span>
-                    <span>{review.tripDate}</span>
-                  </div>
-                </div>
-              </div>
-              <button className="flex items-center text-gray-500 hover:text-blue-600">
-                <ThumbsUp size={18} className="mr-1" />
-                <span className="text-sm">Helpful ({review.helpful})</span>
-              </button>
-            </div>
-
-            <p className="text-gray-700 mb-4">{review.comment}</p>
-
-            {/* Review Highlights */}
-            {review.highlights && review.highlights.length > 0 && (
-              <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-2">Highlights mentioned:</div>
-                <div className="flex flex-wrap gap-2">
-                  {review.highlights.map((highlight, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
-                    >
-                      {highlight}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Agency Response (if any) */}
-            {review.id === 1 && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-start">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <User size={16} className="text-blue-600" />
+        {reviews.length > 0 ? (
+          reviews.map((review) => (
+            <div key={review.id} className="border border-gray-200 rounded-xl p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
+                    <img
+                      src={review.avatar}
+                      alt={review.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
-                    <div className="font-bold text-gray-800 mb-1">
-                      Response from Himalayan Adventures
+                    <div className="flex items-center">
+                      <h4 className="font-bold text-gray-800 mr-2">{review.name}</h4>
+                      {review.verified && (
+                        <CheckCircle size={16} className="text-green-500" />
+                      )}
                     </div>
-                    <p className="text-gray-600 text-sm">
-                      Thank you for your wonderful review, Alex! We're thrilled you enjoyed the trek.
-                      Our team works hard to create memorable experiences. Hope to see you again for
-                      your next Himalayan adventure!
-                    </p>
-                    <div className="text-gray-500 text-xs mt-2">2 days ago</div>
+                    <div className="flex items-center text-gray-600 text-sm">
+                      <div className="flex mr-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={`${i < review.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                              }`}
+                          />
+                        ))}
+                      </div>
+                      <span>•</span>
+                      <span className="ml-2">{review.date}</span>
+                      {review.tripDate && (
+                        <>
+                          <span className="mx-2">•</span>
+                          <span>{review.tripDate}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={() => handleMarkHelpful(review.id)}
+                  className="flex items-center text-gray-500 hover:text-blue-600"
+                >
+                  <ThumbsUp size={18} className="mr-1" />
+                  <span className="text-sm">Helpful ({review.helpful})</span>
+                </button>
               </div>
-            )}
+
+              <p className="text-gray-700 mb-4">{review.comment}</p>
+
+              {/* Review Highlights */}
+              {review.highlights && review.highlights.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-sm text-gray-600 mb-2">Highlights mentioned:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {review.highlights.map((highlight, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                      >
+                        {highlight}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Agency Response */}
+              {review.agencyResponse && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-start">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <User size={16} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-800 mb-1">
+                        Response from Agency
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        {review.agencyResponse.text}
+                      </p>
+                      <div className="text-gray-500 text-xs mt-2">
+                        {review.agencyResponse.date}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 border border-gray-200 rounded-xl">
+            <div className="text-gray-500 mb-2">No reviews yet</div>
+            <p className="text-gray-400 text-sm">Be the first to share your experience!</p>
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Load More / Write Review */}
-      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <button className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-          Load More Reviews
-        </button>
-        <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-          Write a Review
-        </button>
-      </div>
+      {/* Add Review Form */}
+      {showReviewForm ? (
+        <div className="mt-8 p-6 bg-gray-50 rounded-xl">
+          <h3 className="font-bold text-gray-800 mb-4">Write Your Review</h3>
+          <form onSubmit={handleSubmitReview}>
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Your Rating</label>
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setNewReview({ ...newReview, rating: star })}
+                    className="text-2xl mr-1"
+                  >
+                    <Star
+                      className={star <= newReview.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Your Name (Optional)</label>
+              <input
+                type="text"
+                value={newReview.travelerName}
+                onChange={(e) => setNewReview({ ...newReview, travelerName: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                placeholder="Anonymous"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Your Review</label>
+              <textarea
+                value={newReview.comment}
+                onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg h-32"
+                placeholder="Share your experience..."
+                required
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+              >
+                {submitting ? "Submitting..." : "Submit Review"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReviewForm(false)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          {reviews.length > 0 && (
+            <button className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+              Load More Reviews
+            </button>
+          )}
+          <button
+            onClick={() => setShowReviewForm(true)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          >
+            Write a Review
+          </button>
+        </div>
+      )}
 
       {/* Review Guidelines */}
       <div className="mt-8 p-6 bg-gray-50 rounded-xl">

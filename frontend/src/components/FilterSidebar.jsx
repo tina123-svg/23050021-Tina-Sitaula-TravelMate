@@ -1,7 +1,10 @@
- import React from "react";
+// components/FilterSidebar.jsx - FIXED VERSION
+import React from "react";
 import { X, Filter, IndianRupee, Clock, Star, MapPin, Tag } from "lucide-react";
 
-const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFilters }) => {
+const FilterSidebar = ({ filters, setFilters, categories = [], destinations = [], clearFilters }) => {
+  // Add default values for props: categories = [], destinations = []
+
   const priceMarks = {
     0: '₹0',
     50000: '₹50k',
@@ -54,10 +57,10 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
 
   const hasActiveFilters =
     filters.priceRange[1] < 200000 ||
-    filters.categories.length > 0 ||
-    filters.destinations.length > 0 ||
+    (filters.categories && filters.categories.length > 0) ||
+    (filters.destinations && filters.destinations.length > 0) ||
     filters.rating > 0 ||
-    filters.duration.length > 0;
+    (filters.duration && filters.duration.length > 0);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm sticky top-24">
@@ -92,7 +95,7 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
               min="0"
               max="200000"
               step="10000"
-              value={filters.priceRange[1]}
+              value={filters.priceRange?.[1] || 200000}
               onChange={handlePriceChange}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600"
             />
@@ -108,7 +111,7 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
             <div className="mt-4 text-center">
               <span className="text-sm text-gray-600">Up to: </span>
               <span className="font-bold text-blue-700">
-                ₹{filters.priceRange[1].toLocaleString()}
+                ₹{(filters.priceRange?.[1] || 200000).toLocaleString()}
               </span>
             </div>
           </div>
@@ -122,17 +125,21 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
           </div>
 
           <div className="space-y-2">
-            {categories.map(category => (
-              <label key={category} className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.categories.includes(category)}
-                  onChange={() => toggleCategory(category)}
-                  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <span className="ml-3 text-gray-700">{category}</span>
-              </label>
-            ))}
+            {categories && categories.length > 0 ? (
+              categories.map(category => (
+                <label key={category} className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(filters.categories || []).includes(category)}
+                    onChange={() => toggleCategory(category)}
+                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-gray-700">{category}</span>
+                </label>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">Loading categories...</p>
+            )}
           </div>
         </div>
 
@@ -144,17 +151,21 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
           </div>
 
           <div className="space-y-2">
-            {destinations.map(destination => (
-              <label key={destination} className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.destinations.includes(destination)}
-                  onChange={() => toggleDestination(destination)}
-                  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <span className="ml-3 text-gray-700">{destination}</span>
-              </label>
-            ))}
+            {destinations && destinations.length > 0 ? (
+              destinations.map(destination => (
+                <label key={destination} className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(filters.destinations || []).includes(destination)}
+                    onChange={() => toggleDestination(destination)}
+                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="ml-3 text-gray-700">{destination}</span>
+                </label>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">Loading destinations...</p>
+            )}
           </div>
         </div>
 
@@ -174,9 +185,9 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
               <button
                 key={item.value}
                 onClick={() => toggleDuration(item.value)}
-                className={`px-3 py-2 rounded-lg border text-sm ${filters.duration.includes(item.value)
-                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                    : "border-gray-200 text-gray-700 hover:border-gray-300"
+                className={`px-3 py-2 rounded-lg border text-sm ${(filters.duration || []).includes(item.value)
+                  ? "bg-blue-50 border-blue-500 text-blue-700"
+                  : "border-gray-200 text-gray-700 hover:border-gray-300"
                   }`}
               >
                 {item.label}
@@ -198,8 +209,8 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
                 key={rating}
                 onClick={() => setRating(rating)}
                 className={`flex items-center w-full p-2 rounded-lg ${filters.rating === rating
-                    ? "bg-yellow-50 border border-yellow-200"
-                    : "hover:bg-gray-50"
+                  ? "bg-yellow-50 border border-yellow-200"
+                  : "hover:bg-gray-50"
                   }`}
               >
                 <div className="flex">
@@ -208,8 +219,8 @@ const FilterSidebar = ({ filters, setFilters, categories, destinations, clearFil
                       key={i}
                       size={16}
                       className={`${i < Math.floor(rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
                         } ${i === Math.floor(rating) && rating % 1 !== 0
                           ? "fill-yellow-400 text-yellow-400"
                           : ""

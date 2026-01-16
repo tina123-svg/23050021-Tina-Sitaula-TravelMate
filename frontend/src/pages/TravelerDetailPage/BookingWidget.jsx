@@ -7,13 +7,15 @@ const BookingWidget = ({
   setSelectedDate,
   travelerCount,
   setTravelerCount,
-  
+
   onBookNow
 }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTravelerPicker, setShowTravelerPicker] = useState(false);
 
-  const price = parseInt(pkg.price.replace(/,/g, ''));
+  const price = typeof pkg.price === 'string'
+    ? parseInt(pkg.price.replace(/,/g, ''))
+    : pkg.price;
   const baseTotal = price * travelerCount;
   const discount = travelerCount >= 6 ? baseTotal * 0.1 : 0;
   const serviceFee = 1500;

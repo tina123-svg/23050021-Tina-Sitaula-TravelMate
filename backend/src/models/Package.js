@@ -27,7 +27,7 @@ const itineraryDaySchema = new mongoose.Schema({
   altitude: String,
   distance: String,
   tips: String
-});
+});``
 
 const packageSchema = new mongoose.Schema({
   agencyId: {

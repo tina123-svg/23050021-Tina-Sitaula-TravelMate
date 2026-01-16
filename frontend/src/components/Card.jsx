@@ -1,9 +1,13 @@
 import React from "react";
 import { Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export default function PackageCard({ title, description, price, rating, reviews, duration, difficulty, image }) {
+export default function PackageCard({ id, title, description, price, rating, reviews, duration, difficulty, image }) {
+  const navigate = useNavigate();
+
+
   return (
-    <div className="bg-white dark:bg-gray-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-30 border border-gray-50 dark:border-gray-100">
+    <div className="bg-white dark:bg-gray-100 rounded-xl overflow-hidden s  dow-md hover:shadow-xl transition-all duration-30 border border-gray-50 dark:border-gray-100">
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
         <img
@@ -12,7 +16,7 @@ export default function PackageCard({ title, description, price, rating, reviews
           className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow">
-          NPR {price}
+          NPR {price.toLocaleString()}
         </div>
       </div>
 
@@ -54,9 +58,13 @@ export default function PackageCard({ title, description, price, rating, reviews
         </div>
 
         {/* Button */}
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition">
+        <button
+          onClick={() => navigate(`/package/${id}`)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition"
+        >
           View Details
         </button>
+
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// PackageDetailPage.jsx - FIXED VERSION
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../../layout/Header";
@@ -28,11 +27,20 @@ const PackageDetailPage = () => {
   const [travelerCount, setTravelerCount] = useState(2);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
 
   // Fetch package details
   useEffect(() => {
     fetchPackageDetails();
   }, [id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+    setIsAuthenticated(!!token && !!user);
+  }, []);
+
 
   const fetchPackageDetails = async () => {
     try {
@@ -108,6 +116,14 @@ const PackageDetailPage = () => {
   const handleBookNow = () => {
     if (!packageDetail) return;
 
+    if (!isAuthenticated) {
+      // Save current page to redirect back after login
+      localStorage.setItem("redirectAfterLogin", `/package/${id}`);
+      navigate("/login");
+      return;
+    }
+
+    // Proceed to booking
     navigate(`/booking/${id}`, {
       state: {
         package: packageDetail,
@@ -117,6 +133,7 @@ const PackageDetailPage = () => {
       }
     });
   };
+
 
   const handleShare = () => {
     if (navigator.share) {
@@ -162,7 +179,7 @@ const PackageDetailPage = () => {
               Retry
             </button>
             <button
-              onClick={() => navigate("/packages")}
+              onClick={() => navigate("/package")}
               className="ml-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-6 rounded-lg"
             >
               Browse Packages

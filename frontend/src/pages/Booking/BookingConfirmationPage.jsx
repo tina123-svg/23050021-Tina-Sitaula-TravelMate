@@ -14,7 +14,7 @@ const BookingConfirmationPage = () => {
   const navigate = useNavigate();
 
   const bookingData = location.state || {
-    bookingId: bookingId || `BK${Date.now()}`,
+    bookingId: bookingId,
     package: {
       title: "Everest Base Camp Trek",
       duration: 14,
@@ -187,7 +187,7 @@ const BookingConfirmationPage = () => {
             </button>
 
             <button
-              onClick={() => window.location.href = "#"} // Would generate PDF
+              onClick={() => window.location.href = "#"}
               className="flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               <Download size={20} className="mr-2" />
@@ -207,7 +207,7 @@ const BookingConfirmationPage = () => {
           <div className="text-center">
             <p className="text-gray-600 mb-4">Want to explore more adventures?</p>
             <button
-              onClick={() => navigate("/packages")}
+              onClick={() => navigate("/package")}
               className="inline-flex items-center px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium"
             >
               <Home size={20} className="mr-2" />

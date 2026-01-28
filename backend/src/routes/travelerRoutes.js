@@ -10,7 +10,10 @@ const {
 const {
   getPackageReviews,
   submitReview,
-  markHelpful
+  markHelpful,
+  canUserReview
+
+
 } = require("../controller/reviewController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -25,5 +28,6 @@ router.get("/packages/:id/reviews", getPackageReviews);
 // Protected routes (need login)
 router.post("/packages/:id/reviews", protect, submitReview);
 router.post("/reviews/:reviewId/helpful", protect, markHelpful);
+router.get("/:id/can-review", protect, canUserReview);
 
 module.exports = router;  

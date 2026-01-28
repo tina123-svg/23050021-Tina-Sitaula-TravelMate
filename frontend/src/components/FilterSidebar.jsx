@@ -1,10 +1,8 @@
-// components/FilterSidebar.jsx - FIXED VERSION
-import React from "react";
+ import React from "react";
 import { X, Filter, IndianRupee, Clock, Star, MapPin, Tag } from "lucide-react";
 
 const FilterSidebar = ({ filters, setFilters, categories = [], destinations = [], clearFilters }) => {
-  // Add default values for props: categories = [], destinations = []
-
+ 
   const priceMarks = {
     0: '₹0',
     50000: '₹50k',

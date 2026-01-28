@@ -27,7 +27,7 @@ const itineraryDaySchema = new mongoose.Schema({
   altitude: String,
   distance: String,
   tips: String
-});``
+}); ``
 
 const packageSchema = new mongoose.Schema({
   agencyId: {
@@ -91,6 +91,49 @@ const packageSchema = new mongoose.Schema({
       type: Number,
       default: 12
     }
+  },
+
+  // In models/Package.js, add this to the schema:
+  availableDates: [{
+    date: {
+      type: Date,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['available', 'filling', 'soldout'],
+      default: 'available'
+    },
+    seats: {
+      type: Number,
+      default: 10
+    }
+  }],
+
+  // Also add these fields if missing:
+  cancellationPolicy: {
+    freeCancellationDays: {
+      type: Number,
+      default: 30
+    },
+    partialRefundDays: {
+      type: Number,
+      default: 14
+    },
+    noRefundDays: {
+      type: Number,
+      default: 7
+    }
+  },
+
+  maxTravelers: {
+    type: Number,
+    default: 12
+  },
+
+  minTravelers: {
+    type: Number,
+    default: 1
   },
 
   // Content

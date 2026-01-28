@@ -2,8 +2,7 @@
 import React from "react";
 import { MapPin, Navigation } from "lucide-react";
 
-// This is a simplified map view with markers
-// In a real app, you'd use Google Maps or Leaflet
+ // you'd use Google Maps or Leaflet
 const MapView = ({ packages }) => {
   const nepalCenter = { lat: 28.3949, lng: 84.1240 }; 
 

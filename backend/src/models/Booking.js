@@ -112,25 +112,22 @@ const bookingSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate unique booking ID before saving
-bookingSchema.pre("save", async function (next) {
+bookingSchema.pre("save", async function () {
+  // Generate booking ID if not exists
   if (!this.bookingId) {
     const year = new Date().getFullYear();
     const count = await this.constructor.countDocuments({
       bookingId: new RegExp(`TRV-${year}-`)
     });
-    this.bookingId = `TRV-${year}-${String(count + 1).padStart(3, '0')}`;
+    this.bookingId = `TRV-${year}-${String(count + 1).padStart(3, "0")}`;
   }
-  next();
+
+  // Update timestamp
+  this.updatedAt = Date.now();
 });
 
-bookingSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 // Create indexes for faster search
-bookingSchema.index({ bookingId: 1 });
 bookingSchema.index({ agencyId: 1 });
 bookingSchema.index({ status: 1 });
 bookingSchema.index({ createdAt: -1 });

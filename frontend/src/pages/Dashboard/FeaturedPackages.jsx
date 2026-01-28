@@ -108,7 +108,7 @@ export default function FeaturedPackages() {
         {/* CTA */}
         <div className="text-center mt-12">
           <a
-            href="/packages"
+            href="/package"
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg transition inline-block"
           >
             View All Packages

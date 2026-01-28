@@ -32,7 +32,7 @@ const handleLogin = async (e: React.FormEvent) => {
     if (user.role === "admin") {
       navigate("/admin-dashboard");   
     } else {
-      navigate("/homepage");         
+      navigate("/traveler-dashboard");         
     }
 
   } catch (err: any) {

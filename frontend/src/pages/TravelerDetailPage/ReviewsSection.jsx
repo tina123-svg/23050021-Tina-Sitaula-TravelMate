@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Star, ThumbsUp, CheckCircle, User, Loader } from "lucide-react";
-import { packageDetailService } from "../../services/packageDetailsService"; 
+import { packageDetailService } from "../../services/packageDetailsService";
+import { useNavigate } from "react-router-dom";
 
 const ReviewsSection = ({ rating, reviewCount, packageId }) => {
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("recent");
   const [reviews, setReviews] = useState([]);
   const [ratingBreakdown, setRatingBreakdown] = useState([]);
@@ -11,6 +13,8 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [canReview, setCanReview] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: "",
@@ -23,6 +27,28 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
       fetchReviews();
     }
   }, [packageId, sortBy]);
+
+  useEffect(() => {
+    const checkReviewPermission = async () => {
+      try {
+        // Get current user
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        setUserInfo(currentUser);
+
+        // Check if user can review this package
+        const response = await packageDetailService.canUserReview(packageId);
+        if (response.success && response.canReview) {
+          setCanReview(true);
+        }
+      } catch (error) {
+        console.error("Error checking review permission:", error);
+      }
+    };
+
+    if (packageId) {
+      checkReviewPermission();
+    }
+  }, [packageId]);
 
   const fetchReviews = async () => {
     try {
@@ -283,6 +309,29 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
       {showReviewForm ? (
         <div className="mt-8 p-6 bg-gray-50 rounded-xl">
           <h3 className="font-bold text-gray-800 mb-4">Write Your Review</h3>
+
+          {/* Warning if user can't review */}
+          {!canReview && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-700">
+                ⚠️ You can only review packages you have booked and completed.
+              </p>
+              <button
+                onClick={() => navigate('/my-bookings')}
+                className="mt-2 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Check My Bookings →
+              </button>
+            </div>
+          )}
+
+          {/* Show user name if logged in */}
+          {userInfo && (
+            <p className="text-sm text-gray-500 mb-4">
+              Reviewing as: <span className="font-medium">{userInfo.fullName || userInfo.name}</span>
+            </p>
+          )}
+
           <form onSubmit={handleSubmitReview}>
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Your Rating</label>
@@ -303,17 +352,6 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Your Name (Optional)</label>
-              <input
-                type="text"
-                value={newReview.travelerName}
-                onChange={(e) => setNewReview({ ...newReview, travelerName: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg"
-                placeholder="Anonymous"
-              />
-            </div>
-
-            <div className="mb-4">
               <label className="block text-gray-700 mb-2">Your Review</label>
               <textarea
                 value={newReview.comment}
@@ -327,8 +365,8 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={submitting}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50"
+                disabled={submitting || !canReview}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Submitting..." : "Submit Review"}
               </button>
@@ -352,8 +390,9 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
           <button
             onClick={() => setShowReviewForm(true)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            disabled={!canReview}
           >
-            Write a Review
+            {canReview ? "Write a Review" : "Book to Review"}
           </button>
         </div>
       )}

@@ -16,6 +16,9 @@ app.use("/api/agency", require("./src/routes/agencyRoutes"));
 app.use("/api/agency", require("./src/routes/bookingRoutes"));
 app.use("/api/agency", require("./src/routes/profileRoutes"));
 app.use("/api", require("./src/routes/travelerRoutes"));
+app.use('/api/traveler/bookings', require('./src/routes/travelerBookingRoutes'));
+app.use('/api/traveler', require('./src/routes/travelerProfileRoutes'));
+
 
 
 

@@ -44,3 +44,13 @@ export const packageDetailService = {
     }
   }
 };
+
+// canUserReview: async (packageId) => {
+//   try {
+//     const response = await api.get(`/packages/${packageId}/can-review`);
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error checking review eligibility:', error);
+//     throw error;
+//   }
+// }

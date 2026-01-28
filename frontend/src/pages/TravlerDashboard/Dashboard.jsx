@@ -1,12 +1,11 @@
-// pages/TravelerDashboard.jsx - COMPLETE FIXED
-import React, { useState, useEffect } from "react";
+ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
 import PackageCard from '../../components/Card';
 import { Calendar, Heart, User, ArrowRight, Loader, Package as PackageIcon } from "lucide-react";
 import { travelerService } from "../../services/travelerService";
-// import { bookingService } from "../../services/bookingService"; // Will create
+// import { bookingService } from "../../services/bookingService";  
 
 export default function TravelerDashboard() {
   const [loading, setLoading] = useState(true);
@@ -102,7 +101,7 @@ export default function TravelerDashboard() {
             </p>
             <div className="mt-4 flex gap-4">
               <button
-                onClick={() => navigate('/packages')}
+                onClick={() => navigate('/package')}
                 className="bg-white text-blue-600 hover:bg-blue-50 font-medium px-6 py-2 rounded-lg"
               >
                 Browse Packages
@@ -229,7 +228,7 @@ export default function TravelerDashboard() {
               </p>
             </div>
             <button
-              onClick={() => navigate('/packages')}
+              onClick={() => navigate('/package')}
               className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-full transition"
             >
               View All Packages
@@ -259,7 +258,7 @@ export default function TravelerDashboard() {
               <h3 className="text-lg font-medium text-gray-700 mb-2">No recommendations yet</h3>
               <p className="text-gray-500 mb-4">Start browsing packages to get personalized recommendations</p>
               <button
-                onClick={() => navigate('/packages')}
+                onClick={() => navigate('/package')}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg"
               >
                 Browse Packages

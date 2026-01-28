@@ -16,7 +16,8 @@ import PackagesPage from "./pages/AgencyDashboard/PackagePage";
 import BookingsPage from "./pages/AgencyDashboard/BookingPage";
 import ReviewPage from "./pages/AgencyDashboard/ReviewPage";
 import ProfilePage from "./pages/AgencyDashboard/ProfilePage";
-
+import TravelerProfilePage from "./pages/TravlerDashboard/profilePage";
+import MyBookingsPage from "./pages/TravlerDashboard/myBookingPage";
 export default function App() {
   return (
     <>
@@ -31,7 +32,7 @@ export default function App() {
         <Route path="/traveler-dashboard" element={<TravelerDashbord />} />
         <Route path="/package" element={<Package />} />
         <Route path="/Compare" element={<ComparePackage />} />
-        <Route path="/package/:id" element={<PackageDetailPage />} /> 
+        <Route path="/package/:id" element={<PackageDetailPage />} />
         <Route path="/booking/:packageId" element={<BookingPage />} />
         <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
         <Route path="/agency-dashboard" element={<AgencyDashboard />} />
@@ -39,6 +40,9 @@ export default function App() {
         <Route path="/agency-booking" element={<BookingsPage />} />
         <Route path="/agency-Review" element={<ReviewPage />} />
         <Route path="/agency-Profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<TravelerProfilePage />} />
+        <Route path="/my-bookings" element={<MyBookingsPage />} />
+
 
 
 

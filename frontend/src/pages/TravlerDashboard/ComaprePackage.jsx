@@ -1,4 +1,3 @@
-// pages/ComparePage.jsx - COMPLETE FIXED VERSION
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from '../../layout/Header';
@@ -15,7 +14,7 @@ const ComparePage = () => {
     try {
       const storedPackages = JSON.parse(localStorage.getItem('comparePackages') || '[]');
 
-      // Validate packages and add missing fields with fallbacks
+      // Validate packages
       const enhancedPackages = storedPackages
         .filter(pkg => pkg && pkg.id && pkg.title)
         .map(pkg => ({
@@ -24,7 +23,7 @@ const ComparePage = () => {
           rating: typeof pkg.rating === 'object' ? pkg.rating?.average || 5 : pkg.rating || 5,
           // Ensure reviews count
           reviews: typeof pkg.rating === 'object' ? pkg.rating?.count || 0 : pkg.reviews || 0,
-          // Handle agency - check multiple possible fields
+          // Handle agency 
           agency: pkg.agencyDetails?.name || pkg.agency?.name || pkg.agency || "Unknown Agency",
           // Handle included/excluded
           included: pkg.included || pkg.inclusions || [],
@@ -54,7 +53,7 @@ const ComparePage = () => {
   };
 
   const addPackage = () => {
-    navigate('/packages');
+    navigate('/package');
   };
 
   const comparisonFields = [
@@ -214,7 +213,7 @@ const ComparePage = () => {
               Select packages to compare from the packages page. You can compare up to 3 packages at once.
             </p>
             <button
-              onClick={() => navigate('/packages')}
+              onClick={() => navigate('/package')}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg"
             >
               Browse Packages
@@ -243,7 +242,7 @@ const ComparePage = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/packages')}
+              onClick={() => navigate('/package')}
               className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
             >
               ← Back to Packages
@@ -411,7 +410,7 @@ const ComparePage = () => {
           <button
             onClick={() => {
               localStorage.removeItem('comparePackages');
-              navigate('/packages');
+              navigate('/package');
             }}
             className="text-gray-600 hover:text-gray-800 underline text-sm"
           >

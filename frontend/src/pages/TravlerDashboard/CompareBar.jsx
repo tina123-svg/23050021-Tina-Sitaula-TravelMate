@@ -1,4 +1,3 @@
-// components/packages/CompareBar.jsx
 import React from "react";
 import { X, Scale, ChevronRight } from "lucide-react";
 

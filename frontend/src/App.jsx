@@ -18,6 +18,7 @@ import ReviewPage from "./pages/AgencyDashboard/ReviewPage";
 import ProfilePage from "./pages/AgencyDashboard/ProfilePage";
 import TravelerProfilePage from "./pages/TravlerDashboard/profilePage";
 import MyBookingsPage from "./pages/TravlerDashboard/myBookingPage";
+import WishlistPage from "./pages/TravlerDashboard/wishlistPage";
 export default function App() {
   return (
     <>
@@ -42,12 +43,7 @@ export default function App() {
         <Route path="/agency-Profile" element={<ProfilePage />} />
         <Route path="/profile" element={<TravelerProfilePage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
-
-
-
-
-
-
+        <Route path="/wishlist" element={<WishlistPage />} />
 
       </Routes>
       <ToastContainer position="top-right" autoClose={4000} />

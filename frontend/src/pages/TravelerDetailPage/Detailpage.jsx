@@ -8,11 +8,14 @@ import ItineraryAccordion from "./ItineraryAccordion";
 import AgencyCard from "./AgencyCard";
 import ReviewsSection from "./ReviewsSection";
 import RelatedPackages from "./RelatedPackages";
+import MapSection from "./MapSection";
 import { packageDetailService } from "../../services/packageDetailsService";
 import {
   Share2, Heart, MapPin, Calendar, Users, Star,
   ChevronLeft, Download, Printer, Globe, Loader
 } from "lucide-react";
+import { wishlistService } from "../../services/wishlistService";
+
 
 const PackageDetailPage = () => {
   const { id } = useParams();
@@ -25,8 +28,8 @@ const PackageDetailPage = () => {
   const [relatedPackages, setRelatedPackages] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [travelerCount, setTravelerCount] = useState(2);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false); const [activeTab, setActiveTab] = useState("overview");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 
@@ -104,10 +107,9 @@ const PackageDetailPage = () => {
 
     // Group discount
     if (travelerCount >= 6) {
-      total *= 0.9; // 10% discount
+      total *= 0.9;
     }
 
-    // Add service fee
     total += 1500;
 
     return total.toLocaleString();
@@ -132,6 +134,46 @@ const PackageDetailPage = () => {
         totalPrice: calculateTotalPrice()
       }
     });
+  };
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkWishlistStatus();
+    }
+  }, [id, isAuthenticated]);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const response = await wishlistService.checkWishlistStatus(id);
+      if (response.success) {
+        setIsInWishlist(response.isInWishlist);
+      }
+    } catch (error) {
+      console.error('Error checking wishlist:', error);
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      localStorage.setItem("redirectAfterLogin", `/package/${id}`);
+      navigate("/login");
+      return;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        await wishlistService.removeFromWishlist(id);
+        setIsInWishlist(false);
+      } else {
+        await wishlistService.addToWishlist(id);
+        setIsInWishlist(true);
+      }
+    } catch (error) {
+      console.error('Wishlist toggle error:', error);
+      alert(error.response?.data?.message || 'Failed to update wishlist');
+    } finally {
+      setIsWishlistLoading(false);
+    }
   };
 
 
@@ -225,13 +267,16 @@ const PackageDetailPage = () => {
           {/* Share & Favorite Overlay */}
           <div className="absolute top-4 right-4 z-20 flex gap-2">
             <button
-              onClick={() => setIsFavorite(!isFavorite)}
-              className={`p-3 rounded-full backdrop-blur-sm ${isFavorite
-                ? "bg-red-500/20 text-red-600"
-                : "bg-white/20 text-white hover:bg-white/30"
+              onClick={handleWishlistToggle}
+              disabled={isWishlistLoading}
+              className={`p-3 rounded-full backdrop-blur-sm transition ${isWishlistLoading ? 'opacity-50 cursor-not-allowed' : ''}
+    ${isInWishlist
+                  ? "bg-red-500/20 text-red-600 hover:bg-red-500/30"
+                  : "bg-white/20 text-white hover:bg-white/30"
                 }`}
+              title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
-              <Heart size={20} fill={isFavorite ? "currentColor" : "none"} />
+              <Heart size={20} fill={isInWishlist ? "currentColor" : "none"} />
             </button>
             <button
               onClick={handleShare}
@@ -292,7 +337,7 @@ const PackageDetailPage = () => {
               {/* Navigation Tabs */}
               <div className="border-b mb-8">
                 <div className="flex space-x-8">
-                  {["overview", "itinerary", "reviews"].map((tab) => (
+                  {["overview", "itinerary", "map", "reviews"].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -302,7 +347,7 @@ const PackageDetailPage = () => {
                         }`}
                     >
                       {tab === "overview" ? "Overview" :
-                        tab === "itinerary" ? "Day-by-Day Itinerary" : "Reviews"}
+                        tab === "itinerary" ? "Day-by-Day Itinerary" : tab === "map" ? "Route Map" : "Reviews"}
                     </button>
                   ))}
                 </div>
@@ -357,6 +402,9 @@ const PackageDetailPage = () => {
                 {activeTab === "itinerary" && (
                   <ItineraryAccordion itinerary={packageDetail.itinerary || []} />
                 )}
+                {activeTab === "map" && (
+                  <MapSection route={packageDetail.route} />
+                )}
 
                 {activeTab === "reviews" && (
                   <ReviewsSection
@@ -367,7 +415,7 @@ const PackageDetailPage = () => {
                 )}
               </div>
 
-              {/* Agency Information - Create mock if not provided */}
+              {/* Agency Information*/}
               {packageDetail.agencyDetails ? (
                 <AgencyCard agency={packageDetail.agencyDetails} />
               ) : (
@@ -384,7 +432,7 @@ const PackageDetailPage = () => {
                 <BookingWidget
                   package={{
                     ...packageDetail,
-                    price: packageDetail.price.toLocaleString(), // Format for display
+                    price: packageDetail.price.toLocaleString(),
                     maxTravelers: packageDetail.groupSize?.max || 12,
                     minTravelers: packageDetail.groupSize?.min || 2,
                     availableDates: packageDetail.availableDates || generateMockDates()

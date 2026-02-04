@@ -1,14 +1,26 @@
 const Package = require("../models/Package");
 
-//  Create new package
+
+// Create Package
 exports.createPackage = async (req, res) => {
   try {
     const {
       title, description, overview, price, duration,
       difficulty, destination, category, groupSize,
       bestTimeToGo, highlights, included, excluded,
-      itinerary, whatToBring, featured, physicalRequirements
+      itinerary, whatToBring, featured, physicalRequirements,
+      route, status
     } = req.body;
+
+    // Parse JSON fields
+    const parsedGroupSize = typeof groupSize === 'string' ? JSON.parse(groupSize) : groupSize;
+    const parsedItinerary = typeof itinerary === 'string' ? JSON.parse(itinerary) : itinerary;
+    const parsedRoute = typeof route === 'string' ? JSON.parse(route) : route;
+    const parsedHighlights = typeof highlights === 'string' ? JSON.parse(highlights) : highlights;
+    const parsedIncluded = typeof included === 'string' ? JSON.parse(included) : included;
+    const parsedExcluded = typeof excluded === 'string' ? JSON.parse(excluded) : excluded;
+    const parsedWhatToBring = typeof whatToBring === 'string' ? JSON.parse(whatToBring) : whatToBring;
+    const parsedBestTimeToGo = typeof bestTimeToGo === 'string' ? JSON.parse(bestTimeToGo) : bestTimeToGo;
 
     // Basic validation
     if (!title || !description || !price || !duration || !destination) {
@@ -29,16 +41,27 @@ exports.createPackage = async (req, res) => {
       difficulty: difficulty || "moderate",
       destination,
       category: category || "trekking",
-      groupSize: groupSize || { min: 1, max: 12 },
-      bestTimeToGo: bestTimeToGo || [],
-      highlights: highlights || [],
-      included: included || [],
-      excluded: excluded || [],
-      whatToBring: whatToBring || [],
-      itinerary: itinerary || [],
+      groupSize: parsedGroupSize || { min: 1, max: 12 },
+      bestTimeToGo: parsedBestTimeToGo || [],
+      highlights: parsedHighlights || [],
+      included: parsedIncluded || [],
+      excluded: parsedExcluded || [],
+      whatToBring: parsedWhatToBring || [],
+      itinerary: parsedItinerary || [],
+      route: parsedRoute || {
+        startPoint: { name: '', coordinates: { lat: 0, lng: 0 } },
+        endPoint: { name: '', coordinates: { lat: 0, lng: 0 } }
+      },
       featured: featured || false,
       physicalRequirements: physicalRequirements || "",
-      status: "draft"
+      status: status || "draft",
+
+      // Handle uploaded images
+      images: req.files ? req.files.map((file, index) => ({
+        url: `/uploads/${file.filename}`,
+        alt: `${title} - Image ${index + 1}`,
+        isCover: index === 0 // First image as cover by default
+      })) : []
     });
 
     await newPackage.save();
@@ -55,6 +78,74 @@ exports.createPackage = async (req, res) => {
       success: false,
       message: "Server error",
       error: error.message
+    });
+  }
+};
+
+// Update Package
+exports.updatePackage = async (req, res) => {
+  try {
+    console.log("UPDATE PACKAGE REQ FILES:", req.files);  
+    console.log("UPDATE PACKAGE REQ BODY:", req.body);  
+
+    // Find package
+    let package = await Package.findOne({
+      _id: req.params.id,
+      agencyId: req.user.id
+    });
+
+    if (!package) {
+      return res.status(404).json({
+        success: false,
+        message: "Package not found"
+      });
+    }
+
+    // Parse JSON fields
+    const fieldsToParse = ['groupSize', 'bestTimeToGo', 'highlights', 'included',
+      'excluded', 'itinerary', 'whatToBring', 'route'];
+
+    fieldsToParse.forEach(field => {
+      if (req.body[field]) {
+        try {
+          req.body[field] = JSON.parse(req.body[field]);
+        } catch (error) {
+          console.log(`Failed to parse ${field}:`, error.message);
+        }
+      }
+    });
+
+    // Update all fields
+    Object.keys(req.body).forEach(key => {
+      if (key !== 'images') {
+        package[key] = req.body[key];
+      }
+    });
+
+    // Handle images - append new ones
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((file, index) => ({
+        url: `/uploads/${file.filename}`,
+        alt: `${package.title} - Image ${package.images.length + index + 1}`,
+        isCover: false
+      }));
+
+      package.images = [...package.images, ...newImages];
+    }
+
+    await package.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Package updated successfully",
+      data: package
+    });
+
+  } catch (error) {
+    console.error("Update Package Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
     });
   }
 };
@@ -149,72 +240,7 @@ exports.getPackage = async (req, res) => {
   }
 };
 
-//     Update package
-exports.updatePackage = async (req, res) => {
-  try {
-    const {
-      title, description, overview, price, duration,
-      difficulty, destination, category, groupSize,
-      bestTimeToGo, highlights, included, excluded,
-      itinerary, whatToBring, featured, physicalRequirements, status
-    } = req.body;
 
-    // Find package
-    let package = await Package.findOne({
-      _id: req.params.id,
-      agencyId: req.user.id
-    });
-
-    if (!package) {
-      return res.status(404).json({
-        success: false,
-        message: "Package not found"
-      });
-    }
-
-    // Update fields (only update provided fields)
-    if (title !== undefined) package.title = title;
-    if (description !== undefined) package.description = description;
-    if (overview !== undefined) package.overview = overview;
-    if (price !== undefined) package.price = Number(price);
-    if (duration !== undefined) package.duration = Number(duration);
-    if (difficulty !== undefined) package.difficulty = difficulty;
-    if (destination !== undefined) package.destination = destination;
-    if (category !== undefined) package.category = category;
-    if (groupSize !== undefined) package.groupSize = groupSize;
-    if (bestTimeToGo !== undefined) package.bestTimeToGo = bestTimeToGo;
-    if (highlights !== undefined) package.highlights = highlights;
-    if (included !== undefined) package.included = included;
-    if (excluded !== undefined) package.excluded = excluded;
-    if (itinerary !== undefined) package.itinerary = itinerary;
-    if (whatToBring !== undefined) package.whatToBring = whatToBring;
-    if (physicalRequirements !== undefined) package.physicalRequirements = physicalRequirements;
-    if (status !== undefined) package.status = status;
-    if (featured !== undefined) package.featured = featured;
-
-    await package.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Package updated successfully",
-      data: package
-    });
-
-  } catch (error) {
-    console.error("Update Package Error:", error);
-    if (error.name === "CastError") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid package ID"
-      });
-    }
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
-  }
-};
 
 //     Delete package
 exports.deletePackage = async (req, res) => {

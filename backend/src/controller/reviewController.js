@@ -306,7 +306,7 @@ exports.canUserReview = async (req, res) => {
       travelerId: userId,
       status: "confirmed",
       paymentStatus: "paid",
-      startDate: { $lt: new Date() } // Trip has started
+
     });
 
     // Check if already reviewed

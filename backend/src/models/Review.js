@@ -45,9 +45,17 @@ const reviewSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  featured: {
+    type: Boolean,
+    default: false
+  },
   agencyResponse: {
     text: String,
-    date: Date
+    date: Date,
+    agencyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
   }
 }, {
   timestamps: true

@@ -29,11 +29,13 @@ const handleLogin = async (e: React.FormEvent) => {
     toast.success("Login successful!");
 
      const user = res.data.user;
-    if (user.role === "admin") {
-      navigate("/admin-dashboard");   
-    } else {
-      navigate("/traveler-dashboard");         
-    }
+     if (user.role === "admin") {
+    navigate("/admin-dashboard");   
+  } else if (user.role === "agency") {
+    navigate("/agency-dashboard");   
+  } else {
+    navigate("/traveler-dashboard");     
+  }
 
   } catch (err: any) {
     const message = err.response?.data?.message || "Login failed. Please try again.";

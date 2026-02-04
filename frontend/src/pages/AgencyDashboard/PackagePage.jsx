@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import AgencyLayout from '../../layout/Agencylayout';
 import PackageForm from './PackageForm';
-import { Plus, Search, Filter, Eye, Edit, Trash2, Star, Package as PackageIcon } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Star, Package as PackageIcon } from 'lucide-react';
 import { packageService } from '../../services/packageService';
 
 const PackagesPage = () => {
@@ -205,7 +205,21 @@ const PackagesPage = () => {
                 <tr key={pkg._id} className="hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gray-200 rounded-lg mr-4"></div>
+                      <div className="w-12 h-12 rounded-lg mr-4 overflow-hidden bg-gray-200 flex items-center justify-center">
+                        {pkg.images?.[0]?.url ? (
+                          <img
+                            src={`http://localhost:5000${pkg.images[0].url}`}
+                            alt={pkg.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = "/assets/images/default-package.jpg";
+                              e.target.className = "w-6 h-6 text-gray-400";
+                            }}
+                          />
+                        ) : (
+                          <PackageIcon size={24} className="text-gray-400" />
+                        )}
+                      </div>
                       <div>
                         <div className="font-medium text-gray-800 flex items-center">
                           {pkg.title}
@@ -264,9 +278,7 @@ const PackagesPage = () => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                        <Eye size={18} />
-                      </button>
+
                       <button
                         onClick={() => handleEdit(pkg)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"

@@ -13,9 +13,13 @@ export const travelerProfileService = {
   },
 
   // Update traveler profile
-  updateProfile: async (profileData) => {
+  updateProfile: async (formData) => {
     try {
-      const response = await api.put('/traveler/profile', profileData);
+      const response = await api.put('/traveler/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating traveler profile:', error);

@@ -3,7 +3,7 @@ const Booking = require("../models/Booking");
 const comparePassword = require("../utils/comparePassword");
 const hashPassword = require("../utils/hashPassword");
 
- 
+
 exports.getTravelerProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password -resetOtp -resetOtpExpiry");
@@ -96,7 +96,7 @@ exports.getTravelerProfile = async (req, res) => {
   }
 };
 
- 
+
 exports.updateTravelerProfile = async (req, res) => {
   try {
     const {
@@ -124,6 +124,11 @@ exports.updateTravelerProfile = async (req, res) => {
     if (dietaryPreferences) updateData.dietaryPreferences = dietaryPreferences;
     if (medicalConditions) updateData.medicalConditions = medicalConditions;
 
+    // ADD: Handle profile picture upload
+    if (req.file) {
+      updateData.profilePicture = `/uploads/${req.file.filename}`;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       updateData,
@@ -146,7 +151,7 @@ exports.updateTravelerProfile = async (req, res) => {
   }
 };
 
- //chnage password
+//chnage password
 exports.changeTravelerPassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;

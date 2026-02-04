@@ -9,19 +9,44 @@ exports.getAgencyProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
     return res.status(200).json({
       success: true,
+      message: "Agency profile data",
       data: {
         user: {
-          name: user.name,
-          email: user.email,
-          phone: user.phone || "",
-          address: user.address || "",
-          role: user.role
+          _id: user._id,
+          fullName: user.fullName || "",
+          email: user.email || "",
+          role: user.role || "agency",
+          nationality: user.nationality || "Nepali",
+
+          // Agency specific fields
+          agencyName: user.agencyName || "",
+          agencyAddress: user.agencyAddress || "",
+          agencyPhone: user.agencyPhone || "",
+          licenseNumber: user.licenseNumber || "",
+          agencyDescription: user.agencyDescription || "",
+
+          // Profile image
+          avatar: user.avatar || "",
+
+          // Status
+          status: user.status || "pending",
+
+          // Timestamps
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
         },
         agencyInfo: {
-          totalPackages: 0,
-          totalBookings: 0,
+          packagesCount: 0, // You can calculate these later
+          bookingsCount: 0,
           totalRevenue: 0
         }
       }
@@ -42,12 +67,17 @@ exports.updateAgencyProfile = async (req, res) => {
   try {
     const { fullName, agencyPhone, agencyAddress, agencyName, licenseNumber, agencyDescription } = req.body;
     const updateData = {};
+
     if (fullName) updateData.fullName = fullName;
     if (agencyPhone) updateData.agencyPhone = agencyPhone;
     if (agencyAddress) updateData.agencyAddress = agencyAddress;
     if (agencyName) updateData.agencyName = agencyName;
     if (licenseNumber) updateData.licenseNumber = licenseNumber;
     if (agencyDescription) updateData.agencyDescription = agencyDescription;
+
+    if (req.file) {
+      updateData.avatar = `/uploads/${req.file.filename}`;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,

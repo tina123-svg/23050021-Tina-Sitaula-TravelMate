@@ -49,7 +49,6 @@ const TravelerProfilePage = () => {
       const response = await travelerProfileService.getProfile();
 
       if (response.success) {
-        // Map backend fields to frontend state
         const userData = response.data.user;
         setProfile({
           fullName: userData.fullName || '',
@@ -62,11 +61,11 @@ const TravelerProfilePage = () => {
           passportNumber: userData.passportNumber || '',
           dietaryPreferences: userData.dietaryPreferences || '',
           medicalConditions: userData.medicalConditions || '',
+          profilePicture: userData.profilePicture || '',
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         });
-
         setStats(response.data.stats || {});
       }
     } catch (error) {
@@ -89,20 +88,23 @@ const TravelerProfilePage = () => {
 
   const handleSaveProfile = async () => {
     try {
-      // Prepare data for backend
-      const profileData = {
-        fullName: profile.fullName,
-        phone: profile.phone,
-        address: profile.address,
-        nationality: profile.nationality,
-        emergencyContact: profile.emergencyContact,
-        dateOfBirth: profile.dateOfBirth,
-        passportNumber: profile.passportNumber,
-        dietaryPreferences: profile.dietaryPreferences,
-        medicalConditions: profile.medicalConditions
-      };
+      const formData = new FormData();
 
-      const response = await travelerProfileService.updateProfile(profileData);
+      formData.append('fullName', profile.fullName);
+      formData.append('phone', profile.phone);
+      formData.append('address', profile.address);
+      formData.append('nationality', profile.nationality);
+      formData.append('emergencyContact', profile.emergencyContact);
+      formData.append('dateOfBirth', profile.dateOfBirth);
+      formData.append('passportNumber', profile.passportNumber);
+      formData.append('dietaryPreferences', profile.dietaryPreferences);
+      formData.append('medicalConditions', profile.medicalConditions);
+
+      if (profile.profilePictureFile) {
+        formData.append('profilePicture', profile.profilePictureFile);
+      }
+
+      const response = await travelerProfileService.updateProfile(formData);
 
       if (response.success) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
@@ -225,10 +227,27 @@ const TravelerProfilePage = () => {
             {/* Profile Picture */}
             <div className="mb-6 md:mb-0 md:mr-8">
               <div className="relative">
-                <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center">
-                  <span className="text-4xl font-bold text-blue-600">
-                    {profile.fullName?.charAt(0)?.toUpperCase() || 'T'}
-                  </span>
+                <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg overflow-hidden">
+                  {profile.profilePicture ? (
+                    <img
+                      src={`http://localhost:5000${profile.profilePicture}`}
+                      alt={profile.fullName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/assets/images/default-avatar.jpg";
+                        e.target.className = "w-full h-full flex items-center justify-center";
+                        e.target.innerHTML = `<span class="text-4xl font-bold text-blue-600">
+          ${profile.fullName?.charAt(0)?.toUpperCase() || 'T'}
+        </span>`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl font-bold text-blue-600">
+                        {profile.fullName?.charAt(0)?.toUpperCase() || 'T'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {isEditing && (
                   <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-50">
@@ -238,7 +257,15 @@ const TravelerProfilePage = () => {
                       className="hidden"
                       accept="image/*"
                       onChange={(e) => {
-                        console.log('Image upload:', e.target.files[0]);
+                        const file = e.target.files[0];
+                        if (file) {
+                          const previewUrl = URL.createObjectURL(file);
+                          setProfile(prev => ({
+                            ...prev,
+                            profilePicture: previewUrl,
+                            profilePictureFile: file
+                          }));
+                        }
                       }}
                     />
                   </label>
@@ -268,10 +295,7 @@ const TravelerProfilePage = () => {
                   <div className="text-2xl font-bold text-purple-600">NPR {stats.totalSpent?.toLocaleString()}</div>
                   <div className="text-sm text-gray-600">Total Spent</div>
                 </div>
-                {/* <div className="bg-white p-4 rounded-lg text-center shadow-sm">
-                  <div className="text-2xl font-bold text-orange-600">{stats.completedTrips}</div>
-                  <div className="text-sm text-gray-600">Completed Trips</div>
-                </div> */}
+
               </div>
             </div>
           </div>

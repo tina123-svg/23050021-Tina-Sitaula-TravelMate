@@ -22,6 +22,15 @@ const userSchema = new mongoose.Schema(
       enum: ["traveler", "agency", "admin"],
       default: "traveler",
     },
+    avatar: {
+      type: String,
+      default: ""
+    },
+    wishlist: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Package',
+      default: []
+    }],
 
     //traveler fields
     // In models/User.js, add these to the schema:

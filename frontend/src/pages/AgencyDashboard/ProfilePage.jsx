@@ -12,7 +12,8 @@ const ProfilePage = () => {
     agencyAddress: '',
     agencyName: '',
     licenseNumber: '',
-    // For password change
+    avatar: '',
+    avatarFile: null,
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -45,6 +46,7 @@ const ProfilePage = () => {
           agencyName: userData.agencyName || '',
           licenseNumber: userData.licenseNumber || '',
           agencyDescription: userData.agencyDescription || '',
+          avatar: userData.avatar || '',
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
@@ -70,24 +72,27 @@ const ProfilePage = () => {
 
   const handleSaveProfile = async () => {
     try {
-      // Prepare data for backend (frontend fields → backend fields)
-      const profileData = {
-        fullName: profile.fullName,
-        agencyPhone: profile.agencyPhone,
-        agencyAddress: profile.agencyAddress,
-        agencyName: profile.agencyName,
-        licenseNumber: profile.licenseNumber,
-        agencyDescription: profile.agencyDescription
+      // Create FormData for image upload
+      const formData = new FormData();
 
-      };
+      // Add text fields
+      formData.append('fullName', profile.fullName);
+      formData.append('agencyPhone', profile.agencyPhone);
+      formData.append('agencyAddress', profile.agencyAddress);
+      formData.append('agencyName', profile.agencyName);
+      formData.append('licenseNumber', profile.licenseNumber);
+      formData.append('agencyDescription', profile.agencyDescription);
 
-      const response = await profileService.updateProfile(profileData);
+       if (profile.avatarFile) {
+        formData.append('avatar', profile.avatarFile);
+      }
+
+      const response = await profileService.updateProfile(formData);
 
       if (response.success) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setIsEditing(false);
-        // Refresh profile data
-        fetchProfile();
+        fetchProfile(); 
       }
     } catch (error) {
       setMessage({
@@ -194,11 +199,31 @@ const ProfilePage = () => {
           {/* Logo/Image */}
           <div className="mb-6 md:mb-0 md:mr-8">
             <div className="relative">
-              <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg flex items-center justify-center">
-                <span className="text-4xl font-bold text-green-600">
-                  {profile.fullName?.charAt(0) || 'A'}
-                </span>
+              <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg overflow-hidden">
+                {profile.avatar ? (
+                  <img
+                    src={
+                      profile.avatar
+                        ? (profile.avatar.startsWith('blob:')
+                          ? profile.avatar // Local preview
+                          : `http://localhost:5000${profile.avatar}`) // Server path
+                        : "/assets/images/default-avatar.jpg"
+                    }
+                    alt={profile.agencyName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "/assets/images/default-avatar.jpg";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-4xl font-bold text-green-600">
+                      {profile.agencyName?.charAt(0) || 'A'}
+                    </span>
+                  </div>
+                )}
               </div>
+
               {isEditing && (
                 <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-50">
                   <Upload size={18} />
@@ -207,8 +232,16 @@ const ProfilePage = () => {
                     className="hidden"
                     accept="image/*"
                     onChange={(e) => {
-                      // Handle image upload later
-                      console.log('Image upload:', e.target.files[0]);
+                      const file = e.target.files[0];
+                      if (file) {
+                        // Create preview URL
+                        const previewUrl = URL.createObjectURL(file);
+                        setProfile(prev => ({
+                          ...prev,
+                          avatar: previewUrl,
+                          avatarFile: file
+                        }));
+                      }
                     }}
                   />
                 </label>

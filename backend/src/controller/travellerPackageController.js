@@ -168,20 +168,88 @@ exports.getPackageDetails = async (req, res) => {
       });
     }
 
-    // Format agency details - check what fields your User model has
+    // DEBUG: Check what's in the database
+    console.log("DEBUG - Package rating from DB:", package.rating);
+    console.log("DEBUG - Type of rating:", typeof package.rating);
+
+    // Format agency details
     const agencyDetails = package.agencyId ? {
       name: package.agencyId.agencyName || package.agencyId.fullName || "Travel Agency",
-      contact: package.agencyId.agencyPhone || "Not provided", // ← THIS LINE
+      contact: package.agencyId.agencyPhone || "Not provided",
       description: package.agencyId.agencyDescription || "Professional travel agency",
       email: package.agencyId.email,
       address: package.agencyId.agencyAddress,
-      licenseNumber: package.agencyId.licenseNumber
+      licenseNumber: package.agencyId.licenseNumber,
+      avatar: package.agencyId.avatar
     } : {
       name: "Travel Agency",
       contact: "Not provided",
       description: "Professional travel agency",
-      email: "contact@agency.com"
+      email: "contact@agency.com",
+      avatar: ""
+
     };
+
+    // Generate available dates if not in DB
+    const generateAvailableDates = (duration) => {
+      const dates = [];
+      const today = new Date();
+      for (let i = 1; i <= 6; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i * 30);
+        dates.push({
+          startDate: date.toISOString().split('T')[0],
+          endDate: new Date(date.getTime() + (duration - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          availableSpots: Math.floor(Math.random() * 8) + 4
+        });
+      }
+      return dates;
+    };
+
+    // Format images
+    const images = package.images?.map(img => ({
+      url: img.url,
+      alt: img.alt || package.title
+    })) || [];
+
+    // Format itinerary
+    const itinerary = (package.itinerary || []).map((day, index) => ({
+      day: index + 1,
+      title: day.title || `Day ${index + 1}`,
+      description: day.description || '',
+      accommodation: day.accommodation || 'Teahouse/Lodge',
+      meals: day.meals || 'Breakfast, Lunch, Dinner',
+      highlight: day.highlight || 'Scenic views and cultural experience',
+      icon: day.icon || "🏔️",
+      altitude: day.altitude,
+      distance: day.distance,
+      tips: day.tips
+    }));
+
+    // Format inclusions/exclusions
+    const inclusions = package.included || [
+      "All accommodation during trek",
+      "All meals (breakfast, lunch, dinner)",
+      "Licensed English-speaking guide",
+      "Porter service (1 porter for 2 trekkers)",
+      "All necessary permits and TIMS card",
+      "Airport transfers",
+      "Domestic flight (Kathmandu-Lukla-Kathmandu)"
+    ];
+
+    const exclusions = package.excluded || [
+      "International airfare",
+      "Nepal entry visa fee",
+      "Travel insurance",
+      "Personal expenses",
+      "Tips for guide and porter",
+      "Extra nights in Kathmandu",
+      "Alcoholic beverages"
+    ];
+
+    // FIX: Extract rating properly - ALWAYS return a number
+    const ratingValue = package.rating?.average || 4.5;
+    const reviewCount = package.rating?.count || Math.floor(Math.random() * 200) + 50;
 
     // Format the response
     const formattedPackage = {
@@ -190,7 +258,7 @@ exports.getPackageDetails = async (req, res) => {
       tagline: package.tagline || package.description?.substring(0, 100) + "...",
       description: package.description,
       detailedDescription: package.overview || package.description,
-      price: package.price,
+      price: package.price?.toLocaleString(),
       duration: package.duration,
       difficulty: package.difficulty,
       destination: package.destination,
@@ -200,21 +268,31 @@ exports.getPackageDetails = async (req, res) => {
       highlights: package.highlights,
       included: package.included,
       excluded: package.excluded,
-      itinerary: package.itinerary,
+      itinerary: itinerary,
       whatToBring: package.whatToBring,
       physicalRequirements: package.physicalRequirements,
-      rating: typeof package.rating === 'object' ? package.rating?.average || 5 : package.rating || 5,
-      reviews: typeof package.rating === 'object' ? package.rating?.count || 0 : package.reviews || 0,
+
+      // CRITICAL FIX: Make sure rating is always a number
+      rating: ratingValue, // This should be 4.5, not {average: 4.5, count: 120}
+      reviews: reviewCount,
+
       featured: package.featured || false,
-      images: package.images || [],
+      route: package.route || {
+        startPoint: {
+          name: '',
+          coordinates: { lat: 0, lng: 0 }
+        },
+        endPoint: {
+          name: '',
+          coordinates: { lat: 0, lng: 0 }
+        }
+      },
+      images: images,
       createdAt: package.createdAt,
-      // ADD THESE:
       agencyDetails: agencyDetails,
       maxTravelers: package.groupSize?.max || 12,
       minTravelers: package.groupSize?.min || 2,
-      // Generate available dates if not in DB
       availableDates: package.availableDates || generateAvailableDates(package.duration),
-      // Add other fields for frontend
       cancellationPolicy: package.cancellationPolicy || {
         freeCancellationDays: 30,
         partialRefundDays: 14,
@@ -225,12 +303,53 @@ exports.getPackageDetails = async (req, res) => {
           question: "What is the difficulty level?",
           answer: `${package.difficulty || "Moderate"}. ${package.physicalRequirements || "Requires basic fitness."}`
         }
-      ]
+      ],
+      // Additional fields for frontend
+      originalPrice: package.originalPrice ? package.originalPrice.toLocaleString() : null,
+      discount: package.discount || Math.floor(Math.random() * 20) + 5,
+      nights: package.duration - 1,
+      altitude: package.highestAltitude || "5,364m",
+      bestSeason: package.bestTimeToGo || ["Spring (Mar-May)", "Autumn (Sep-Nov)"],
+      tags: package.tags || ["Trekking", "Adventure", "Himalayas"]
     };
+
+    // Get related packages
+    const relatedPackages = await Package.find({
+      category: package.category,
+      _id: { $ne: package._id },
+      status: "active"
+    })
+      .select("title description price duration difficulty destination category images rating")
+      .limit(4);
+
+    // Format related packages - FIX rating here too
+    const formattedRelatedPackages = relatedPackages.map(pkg => {
+      const relatedRating = pkg.rating?.average || 0;
+      const relatedReviews = pkg.rating?.count || 0;
+
+      return {
+        id: pkg._id,
+        title: pkg.title,
+        description: pkg.description,
+        price: pkg.price,
+        rating: relatedRating, // Make sure this is a number
+        reviews: relatedReviews,
+        duration: pkg.duration,
+        difficulty: pkg.difficulty,
+        destination: pkg.destination,
+        image: pkg.images?.[0]?.url || "/assets/images/default-package.jpg",
+        category: pkg.category
+      };
+    });
+
+    // DEBUG: Check final response
+    console.log("DEBUG - Final rating value:", formattedPackage.rating);
+    console.log("DEBUG - Final rating type:", typeof formattedPackage.rating);
 
     return res.status(200).json({
       success: true,
-      data: formattedPackage
+      data: formattedPackage,
+      relatedPackages: formattedRelatedPackages
     });
 
   } catch (error) {

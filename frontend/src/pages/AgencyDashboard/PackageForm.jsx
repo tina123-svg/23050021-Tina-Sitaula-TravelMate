@@ -1,6 +1,25 @@
 // components/agency/PackageForm.jsx
 import React, { useState } from 'react';
 import { X, Plus, Trash2, Upload, Calendar, Users, MapPin } from 'lucide-react';
+import { packageService } from '../../services/packageService';
+
+const safeParseJSONArray = (str) => {
+  if (Array.isArray(str)) return str;
+  if (!str) return [];
+
+  try {
+    const parsed = JSON.parse(str);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    if (typeof str === 'string' && str.includes(',')) {
+      return str.split(',').map(item => item.trim()).filter(item => item);
+    }
+    if (typeof str === 'string' && str.trim()) {
+      return [str];
+    }
+    return [];
+  }
+};
 
 const PackageForm = ({ onClose, onSave, initialData = null }) => {
   const [formData, setFormData] = useState(initialData || {
@@ -13,15 +32,25 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
     destination: '',
     category: 'trekking',
     groupSize: { min: 2, max: 12 },
-    bestTimeToGo: [],
-    highlights: [''],
-    included: [''],
-    excluded: [''],
-    itinerary: [],
+    bestTimeToGo: JSON.stringify([]),
+    highlights: JSON.stringify(['']),
+    included: JSON.stringify(['']),
+    excluded: JSON.stringify(['']),
+    itinerary: JSON.stringify([]),
     images: [],
     featured: false,
     physicalRequirements: '',
-    whatToBring: ['']
+    whatToBring: JSON.stringify(['']),
+    route: JSON.stringify({
+      startPoint: {
+        name: '',
+        coordinates: { lat: '', lng: '' }
+      },
+      endPoint: {
+        name: '',
+        coordinates: { lat: '', lng: '' }
+      }
+    })
   });
 
   const [currentItineraryDay, setCurrentItineraryDay] = useState({
@@ -69,29 +98,47 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
   };
 
   const handleArrayField = (field, index, value) => {
-    const newArray = [...formData[field]];
-    newArray[index] = value;
-    setFormData(prev => ({
-      ...prev,
-      [field]: newArray
-    }));
+    try {
+      const currentArray = JSON.parse(formData[field] || '[]');
+      const newArray = [...currentArray];
+      newArray[index] = value;
+
+      setFormData(prev => ({
+        ...prev,
+        [field]: JSON.stringify(newArray)
+      }));
+    } catch (error) {
+      console.error('Error parsing array:', error);
+    }
   };
 
   const addArrayField = (field) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }));
+    try {
+      const currentArray = JSON.parse(formData[field] || '[]');
+      const newArray = [...currentArray, ''];
+
+      setFormData(prev => ({
+        ...prev,
+        [field]: JSON.stringify(newArray)
+      }));
+    } catch (error) {
+      console.error('Error adding to array:', error);
+    }
   };
 
   const removeArrayField = (field, index) => {
-    const newArray = formData[field].filter((_, i) => i !== index);
-    setFormData(prev => ({
-      ...prev,
-      [field]: newArray
-    }));
-  };
+    try {
+      const currentArray = JSON.parse(formData[field] || '[]');
+      const newArray = currentArray.filter((_, i) => i !== index);
 
+      setFormData(prev => ({
+        ...prev,
+        [field]: JSON.stringify(newArray)
+      }));
+    } catch (error) {
+      console.error('Error removing from array:', error);
+    }
+  };
   const handleItineraryChange = (e) => {
     const { name, value } = e.target;
     setCurrentItineraryDay(prev => ({
@@ -147,20 +194,67 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validate required fields
-    if (!formData.title || !formData.description || !formData.price || !formData.duration) {
-      alert('Please fill all required fields');
+
+    const formDataToSend = new FormData();
+
+    // ONLY send these fields (don't send read-only fields)
+    const fieldsToSend = [
+      'title', 'description', 'overview', 'price', 'duration',
+      'difficulty', 'destination', 'category', 'groupSize',
+      'bestTimeToGo', 'highlights', 'included', 'excluded',
+      'itinerary', 'whatToBring', 'route', 'physicalRequirements',
+      'featured', 'status'
+    ];
+
+    fieldsToSend.forEach(key => {
+      if (formData[key] !== undefined) {
+        const value = formData[key];
+        const stringValue = typeof value === 'object' ? JSON.stringify(value) : value;
+        formDataToSend.append(key, stringValue);
+      }
+    });
+
+    // Add images separately
+    formData.images?.forEach((file) => {
+      formDataToSend.append('images', file);
+    });
+
+    console.log("Sending fields:", [...formDataToSend.keys()]);
+
+    try {
+      const response = initialData
+        ? await packageService.updatePackage(initialData._id, formDataToSend)
+        : await packageService.createPackage(formDataToSend);
+
+      if (response.success) {
+        onSave(response.data);
+        onClose();
+      }
+    } catch (err) {
+      console.error("Package save error:", err);
+      alert("Failed to save package: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const [imagePreviews, setImagePreviews] = useState([]);
+
+  // Handle multiple file select + preview
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 10) {
+      alert("Maximum 10 images allowed");
       return;
     }
 
-    if (formData.itinerary.length === 0) {
-      alert('Please add at least one itinerary day');
-      return;
-    }
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...previews]);
 
-    onSave(formData);
+    setFormData(prev => ({
+      ...prev,
+      images: [...(prev.images || []), ...files]
+    }));
   };
 
   return (
@@ -390,29 +484,68 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   Best Time to Go
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {bestTimes.map(time => (
+                  {bestTimes.map((time, index) => (
                     <label
-                      key={time}
-                      className={`flex items-center p-3 border rounded-lg cursor-pointer ${formData.bestTimeToGo.includes(time)
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                      key={`besttime-${index}`}
+                      className={`flex items-center p-3 border rounded-lg cursor-pointer ${(function () {
+                        const val = formData.bestTimeToGo;
+                        if (Array.isArray(val)) return val.includes(time);
+                        if (typeof val === 'string' && val.startsWith('[')) {
+                          try {
+                            const arr = JSON.parse(val);
+                            return Array.isArray(arr) && arr.includes(time);
+                          } catch {
+                            return false;
+                          }
+                        }
+                        if (typeof val === 'string') return val === time;
+                        return false;
+                      })() ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
                     >
                       <input
                         type="checkbox"
-                        checked={formData.bestTimeToGo.includes(time)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData(prev => ({
-                              ...prev,
-                              bestTimeToGo: [...prev.bestTimeToGo, time]
-                            }));
-                          } else {
-                            setFormData(prev => ({
-                              ...prev,
-                              bestTimeToGo: prev.bestTimeToGo.filter(t => t !== time)
-                            }));
+                        checked={(function () {
+                          const val = formData.bestTimeToGo;
+                          if (Array.isArray(val)) return val.includes(time);
+                          if (typeof val === 'string' && val.startsWith('[')) {
+                            try {
+                              const arr = JSON.parse(val);
+                              return Array.isArray(arr) && arr.includes(time);
+                            } catch {
+                              return false;
+                            }
                           }
+                          if (typeof val === 'string') return val === time;
+                          return false;
+                        })()} onChange={(e) => {
+                          // Get current value
+                          const current = formData.bestTimeToGo;
+
+                          // Handle both cases: if string, convert to array
+                          let currentArray;
+                          if (typeof current === 'string') {
+                            try {
+                              currentArray = JSON.parse(current);
+                            } catch {
+                              currentArray = current ? [current] : [];
+                            }
+                          } else if (Array.isArray(current)) {
+                            currentArray = current;
+                          } else {
+                            currentArray = [];
+                          }
+
+                          let newArray;
+                          if (e.target.checked) {
+                            newArray = [...currentArray, time];
+                          } else {
+                            newArray = currentArray.filter(t => t !== time);
+                          }
+
+                          setFormData(prev => ({
+                            ...prev,
+                            bestTimeToGo: JSON.stringify(newArray)
+                          }));
                         }}
                         className="mr-3"
                       />
@@ -421,30 +554,277 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   ))}
                 </div>
               </div>
+              {/* map */}
+              {/* Route Points */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="inline mr-2" size={16} />
+                  Trek Route Points
+                  <span className="text-xs text-gray-500 ml-2">(For map display)</span>
+                </label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Start Point */}
+                  <div className="border border-gray-200 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-800 mb-3 flex items-center">
+                      <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mr-2">S</span>
+                      Start Point
+                    </h4>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Location Name</label>
+                        <input
+                          type="text"
+                          value={formData.route?.startPoint?.name || ''}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            route: {
+                              ...prev.route,
+                              startPoint: {
+                                ...prev.route?.startPoint,
+                                name: e.target.value
+                              }
+                            }
+                          }))}
+                          className="w-full p-2 border border-gray-300 rounded text-sm"
+                          placeholder="e.g., Lukla Airport"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Latitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.route?.startPoint?.coordinates?.lat || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              route: {
+                                ...prev.route,
+                                startPoint: {
+                                  ...prev.route?.startPoint,
+                                  coordinates: {
+                                    ...prev.route?.startPoint?.coordinates,
+                                    lat: e.target.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                            placeholder="27.687"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Longitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.route?.startPoint?.coordinates?.lng || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              route: {
+                                ...prev.route,
+                                startPoint: {
+                                  ...prev.route?.startPoint,
+                                  coordinates: {
+                                    ...prev.route?.startPoint?.coordinates,
+                                    lng: e.target.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                            placeholder="86.731"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* End Point */}
+                  <div className="border border-gray-200 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-800 mb-3 flex items-center">
+                      <span className="w-6 h-6 bg-red-100 text-red-700 rounded-full flex items-center justify-center mr-2">E</span>
+                      End Point
+                    </h4>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Location Name</label>
+                        <input
+                          type="text"
+                          value={formData.route?.endPoint?.name || ''}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            route: {
+                              ...prev.route,
+                              endPoint: {
+                                ...prev.route?.endPoint,
+                                name: e.target.value
+                              }
+                            }
+                          }))}
+                          className="w-full p-2 border border-gray-300 rounded text-sm"
+                          placeholder="e.g., Everest Base Camp"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Latitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.route?.endPoint?.coordinates?.lat || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              route: {
+                                ...prev.route,
+                                endPoint: {
+                                  ...prev.route?.endPoint,
+                                  coordinates: {
+                                    ...prev.route?.endPoint?.coordinates,
+                                    lat: e.target.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                            placeholder="27.9881"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Longitude</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.route?.endPoint?.coordinates?.lng || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              route: {
+                                ...prev.route,
+                                endPoint: {
+                                  ...prev.route?.endPoint,
+                                  coordinates: {
+                                    ...prev.route?.endPoint?.coordinates,
+                                    lng: e.target.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                            placeholder="86.9250"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">
+                  Add start and end point coordinates to display trekking route on map.
+                  <a
+                    href="https://www.latlong.net/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 ml-1"
+                  >
+                    Find coordinates here
+                  </a>
+                </p>
+              </div>
+
+              {/* image */}
+              <div className="mt-8">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Package Images (up to 10)
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center"
+                  >
+                    <Upload size={40} className="text-gray-400 mb-2" />
+                    <span className="text-blue-600 font-medium">Click to upload images</span>
+                    <span className="text-xs text-gray-500 mt-1">PNG, JPG, max 5MB each</span>
+                  </label>
+                </div>
+
+                {/* Preview */}
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    {imagePreviews.map((preview, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={preview}
+                          alt={`Preview ${idx}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImagePreviews(prev => prev.filter((_, i) => i !== idx));
+                            setFormData(prev => ({
+                              ...prev,
+                              images: prev.images.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
 
               {/* Highlights */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Key Highlights
                 </label>
-                {formData.highlights.map((highlight, index) => (
-                  <div key={index} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={highlight}
-                      onChange={(e) => handleArrayField('highlights', index, e.target.value)}
-                      className="flex-1 p-3 border border-gray-300 rounded-lg"
-                      placeholder="e.g., Sunrise view from Kala Patthar"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeArrayField('highlights', index)}
-                      className="p-3 text-red-500 hover:bg-red-50 rounded-lg"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                ))}
+                {(() => {
+                  try {
+                    const highlights = JSON.parse(formData.highlights || '[]');
+                    if (Array.isArray(highlights)) {
+                      return highlights.map((highlight, index) => (
+                        <div key={index} className="flex gap-2 mb-2">
+                          <input
+                            type="text"
+                            value={highlight}
+                            onChange={(e) => handleArrayField('highlights', index, e.target.value)}
+                            className="flex-1 p-3 border border-gray-300 rounded-lg"
+                            placeholder="e.g., Sunrise view from Kala Patthar"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeArrayField('highlights', index)}
+                            className="p-3 text-red-500 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
+                      ));
+                    }
+                  } catch {
+                    // If not valid JSON, treat as empty
+                  }
+                  return [];
+                })()}
                 <button
                   type="button"
                   onClick={() => addArrayField('highlights')}
@@ -565,7 +945,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
             {/* Included */}
             <div>
               <h3 className="text-xl font-bold text-gray-800 mb-4">What's Included</h3>
-              {formData.included.map((item, index) => (
+              {safeParseJSONArray(formData.excluded).map((item, index) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <input
                     type="text"

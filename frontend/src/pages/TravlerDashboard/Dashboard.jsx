@@ -1,4 +1,4 @@
- import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
@@ -244,8 +244,8 @@ export default function TravelerDashboard() {
                   title={pkg.title}
                   description={pkg.description}
                   price={pkg.price?.toLocaleString?.() || pkg.price}
-                  rating={typeof pkg.rating === 'object' ? pkg.rating?.average || 5 : pkg.rating || 5}
-                  reviews={typeof pkg.rating === 'object' ? pkg.rating?.count || 0 : pkg.reviews || 0}
+                  rating={typeof pkg.rating === 'object' ? (pkg.rating?.average ?? 0) : (pkg.rating ?? 0)}  
+                  reviews={typeof pkg.rating === 'object' ? (pkg.rating?.count ?? 0) : (pkg.reviews ?? 0)}
                   duration={pkg.duration}
                   difficulty={pkg.difficulty}
                   image={pkg.image}

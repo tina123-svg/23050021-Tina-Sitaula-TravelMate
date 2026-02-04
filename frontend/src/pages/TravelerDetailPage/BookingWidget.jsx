@@ -200,12 +200,7 @@ const BookingWidget = ({
             <div className="text-sm font-medium bg-gray-100 px-3 py-2 rounded">
               eSewa
             </div>
-            <div className="text-sm font-medium bg-gray-100 px-3 py-2 rounded">
-              Khalti
-            </div>
-            <div className="text-sm font-medium bg-gray-100 px-3 py-2 rounded">
-              Cash
-            </div>
+
           </div>
         </div>
       </div>

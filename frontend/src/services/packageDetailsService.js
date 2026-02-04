@@ -23,9 +23,38 @@ export const packageDetailService = {
       throw error;
     }
   },
+
+  getRelatedPackages: async (category, excludeId) => {
+    try {
+      const response = await api.get('/packages/related', {
+        params: { category, excludeId }
+      });
+
+      // Transform rating from object to number
+      const transformedData = response.data.data?.map(pkg => ({
+        ...pkg,
+        rating: pkg.rating?.average || pkg.rating || 0
+      }));
+
+      return {
+        ...response.data,
+        data: transformedData || response.data.data
+      };
+    } catch (error) {
+      console.error('Error fetching related packages:', error);
+      throw error;
+    }
+  },
+
   submitReview: async (packageId, reviewData) => {
     try {
-      const response = await api.post(`/packages/${packageId}/reviews`, reviewData);
+      const token = localStorage.getItem('token');
+
+      const response = await api.post(`/packages/${packageId}/reviews`, reviewData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -42,15 +71,16 @@ export const packageDetailService = {
       console.error('Error marking review helpful:', error);
       throw error;
     }
+  },
+
+  canUserReview: async (packageId) => {
+    try {
+      const response = await api.get(`/packages/${packageId}/can-review`);
+      return response.data;
+    } catch (error) {
+      console.error('Error checking review eligibility:', error);
+      throw error;
+    }
   }
 };
 
-// canUserReview: async (packageId) => {
-//   try {
-//     const response = await api.get(`/packages/${packageId}/can-review`);
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error checking review eligibility:', error);
-//     throw error;
-//   }
-// }

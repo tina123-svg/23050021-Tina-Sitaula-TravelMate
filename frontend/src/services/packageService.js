@@ -1,4 +1,3 @@
-// src/services/packageService.js
 import api from './api';
 
 export const packageService = {
@@ -26,24 +25,39 @@ export const packageService = {
   },
 
   // Create new package
-  createPackage: async (packageData) => {
+  createPackage: async (formData) => {
     try {
-      const response = await api.post('/agency/packages', packageData);
+      const response = await api.post('/agency/packages', formData);
       return response.data;
     } catch (error) {
       console.error('Error creating package:', error);
-      throw error;
+
+      // Provide more specific error messages
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.code === 'ERR_NETWORK') {
+        throw new Error('Network error. Please check your connection.');
+      } else {
+        throw new Error('Failed to create package. Please try again.');
+      }
     }
   },
 
   // Update package
-  updatePackage: async (id, packageData) => {
+  updatePackage: async (id, formData) => {
     try {
-      const response = await api.put(`/agency/packages/${id}`, packageData);
+      const response = await api.put(`/agency/packages/${id}`, formData);
       return response.data;
     } catch (error) {
       console.error('Error updating package:', error);
-      throw error;
+
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.code === 'ERR_NETWORK') {
+        throw new Error('Network error. Please check your connection.');
+      } else {
+        throw new Error('Failed to update package. Please try again.');
+      }
     }
   },
 

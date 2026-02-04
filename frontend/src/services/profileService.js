@@ -13,9 +13,13 @@ export const profileService = {
   },
 
   // Update agency profile
-  updateProfile: async (profileData) => {
+  updateProfile: async (formData) => {
     try {
-      const response = await api.put('/agency/profile', profileData);
+      const response = await api.put('/agency/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating profile:', error);

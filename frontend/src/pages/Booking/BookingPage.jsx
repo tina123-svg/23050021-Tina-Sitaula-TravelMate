@@ -78,7 +78,7 @@ const BookingPage = () => {
 
   const completeBooking = async () => {
     try {
-      // Check if user is logged in (extra safety)
+      // Check if user is logged in
       const token = localStorage.getItem('token');
       if (!token) {
         navigate('/login', {
@@ -90,7 +90,6 @@ const BookingPage = () => {
         return;
       }
 
-      // Get current user
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
       const bookingData = {
@@ -104,7 +103,8 @@ const BookingPage = () => {
           emergencyContact: travelerInfo.emergencyContact || '',
           specialRequests: travelerInfo.specialRequests || ''
         },
-        paymentMethod: payment.method === 'esewa' ? 'online' : 'bank_transfer'
+        paymentMethod: payment.method === 'esewa' ? 'online' : 'bank_transfer',
+        totalAmount: total // ADD THIS LINE - Send the total amount
       };
 
       console.log("Sending booking data:", bookingData);
@@ -112,7 +112,7 @@ const BookingPage = () => {
       const response = await travelerBookingService.createBooking(bookingData);
 
       if (response.success) {
-        // Navigate to confirmation
+        // ✅ FIX: Navigate to confirmation page for PAYMENT
         navigate(`/booking-confirmation/${response.data._id}`, {
           state: {
             bookingId: response.data.bookingId,
@@ -142,7 +142,6 @@ const BookingPage = () => {
       alert(error.response?.data?.message || 'Failed to create booking. Please try again.');
     }
   };
-
 
 
   const formatDate = (dateString) => {
@@ -699,7 +698,7 @@ const BookingPage = () => {
                       }`}
                     disabled={!validateStepDetails(step).isValid}
                   >
-                    {step === 3 ? "Complete Booking" : "Continue"}
+                    {step === 3 ? "Proceed to Payment" : "Continue"}
                     <ChevronRight size={20} className="ml-2" />
                   </button>
                 </div>

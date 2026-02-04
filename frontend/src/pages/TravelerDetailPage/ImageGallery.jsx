@@ -1,16 +1,44 @@
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 
-const ImageGallery = ({ images }) => {
+const ImageGallery = ({ images = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `http://localhost:5000${url}`;
+  };
+
+  // Extract URLs - prefer cover image first, then others
+  const imageUrls = images
+    .filter(img => img?.url) // skip invalid
+    .sort((a, b) => (b.isCover ? 1 : 0) - (a.isCover ? 1 : 0)) // cover first
+    .map(img => getImageUrl(img.url));
+
+  // Fallback if no images
+  const fallbackImage = "/assets/images/default-package.jpg";
+
+  if (imageUrls.length === 0) {
+    return (
+      <div className="relative h-96 md:h-[500px] bg-gray-200 rounded-xl flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          <p className="text-lg">No images available for this package</p>
+          <p className="text-sm mt-2">Contact the agency for more details</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentImage = imageUrls[currentIndex] || fallbackImage;
+
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setCurrentIndex((prev) => (prev + 1) % imageUrls.length);
   };
 
   const prevImage = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentIndex((prev) => (prev - 1 + imageUrls.length) % imageUrls.length);
   };
 
   const goToImage = (index) => {
@@ -21,97 +49,97 @@ const ImageGallery = ({ images }) => {
     setIsFullscreen(!isFullscreen);
   };
 
-  if (!images || images.length === 0) {
-    return (
-      <div className="relative h-96 bg-gray-200">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-gray-500">No images available</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative">
       {/* Main Image */}
-      <div className="relative h-96 md:h-[500px] overflow-hidden bg-gray-900">
+      <div className="relative h-96 md:h-[500px] lg:h-[600px] overflow-hidden rounded-xl bg-gray-900 group">
         <img
-          src={images[currentIndex]}
-          alt={`Gallery image ${currentIndex + 1}`}
-          className="w-full h-full object-cover"
+          src={currentImage}
+          alt={`Package image ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={(e) => {
+            e.target.src = fallbackImage;
+          }}
         />
 
         {/* Navigation Arrows */}
         <button
           onClick={prevImage}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition backdrop-blur-sm opacity-70 hover:opacity-100"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={28} />
         </button>
         <button
           onClick={nextImage}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition backdrop-blur-sm opacity-70 hover:opacity-100"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={28} />
         </button>
 
-        {/* Fullscreen Button */}
-        <button
-          onClick={toggleFullscreen}
-          className="absolute top-4 right-4 w-10 h-10 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
-        >
-          <Maximize2 size={20} />
-        </button>
-
-        {/* Image Counter */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-          {currentIndex + 1} / {images.length}
+        {/* Fullscreen & Counter */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-6 bg-black/60 px-6 py-3 rounded-full text-white text-sm backdrop-blur-md">
+          <span>{currentIndex + 1} / {imageUrls.length}</span>
+          <button
+            onClick={toggleFullscreen}
+            className="flex items-center gap-2 hover:text-blue-300 transition"
+          >
+            <Maximize2 size={18} />
+            <span>Fullscreen</span>
+          </button>
         </div>
       </div>
 
       {/* Thumbnail Strip */}
-      <div className="flex gap-2 p-4 bg-gray-50 overflow-x-auto">
-        {images.map((image, index) => (
-          <button
-            key={index}
-            onClick={() => goToImage(index)}
-            className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${currentIndex === index
-              ? "border-blue-500"
-              : "border-transparent hover:border-gray-300"
-              }`}
-          >
-            <img
-              src={image}
-              alt={`Thumbnail ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-          </button>
-        ))}
-      </div>
+      {imageUrls.length > 1 && (
+        <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+          {imageUrls.map((imgUrl, index) => (
+            <button
+              key={index}
+              onClick={() => goToImage(index)}
+              className={`flex-shrink-0 w-20 md:w-24 h-20 md:h-24 rounded-lg overflow-hidden border-2 transition-all duration-200 ${currentIndex === index
+                ? "border-blue-500 scale-105 shadow-md"
+                : "border-transparent hover:border-gray-300 hover:scale-105"
+                }`}
+            >
+              <img
+                src={imgUrl}
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.src = fallbackImage; }}
+              />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Fullscreen Modal */}
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
           <button
             onClick={toggleFullscreen}
-            className="absolute top-4 right-4 text-white text-2xl"
+            className="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 transition"
           >
-            ✕
+            <X size={40} />
           </button>
+
           <img
-            src={images[currentIndex]}
+            src={currentImage}
             alt="Fullscreen view"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-[90%] max-h-[90%] object-contain"
+            onError={(e) => { e.target.src = fallbackImage; }}
           />
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToImage(index)}
-                className={`w-3 h-3 rounded-full ${currentIndex === index ? "bg-white" : "bg-white/50"
-                  }`}
-              />
-            ))}
+
+          {/* Bottom Controls */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-8 bg-black/50 px-8 py-4 rounded-full text-white">
+            <button onClick={prevImage}>
+              <ChevronLeft size={32} />
+            </button>
+            <span className="text-lg font-medium">
+              {currentIndex + 1} / {imageUrls.length}
+            </span>
+            <button onClick={nextImage}>
+              <ChevronRight size={32} />
+            </button>
           </div>
         </div>
       )}

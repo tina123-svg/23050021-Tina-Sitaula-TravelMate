@@ -1,7 +1,7 @@
+// agencyRoutes.js
 const express = require("express");
 const router = express.Router();
 const { protect, restrictTo } = require("../middleware/authMiddleware");
-
 const {
   createPackage,
   getAgencyPackages,
@@ -11,31 +11,17 @@ const {
   toggleFeatured,
   updateStatus
 } = require("../controller/packageController");
+const { uploadMultiple } = require("../utils/upload");  
 
-// Apply auth middleware to all agency routes
+// Apply auth middleware
 router.use(protect);
 router.use(restrictTo("agency"));
 
-router.get("/profile", (req, res) => {
-  res.json({
-    success: true,
-    message: "Agency profile data",
-    data: {
-      user: req.user,
-      agencyInfo: {
-        packagesCount: 0,
-        bookingsCount: 0,
-        totalRevenue: 0
-      }
-    }
-  });
-});
-
-// Package Routes
-router.post("/packages", createPackage);
+// Package Routes - use uploadMultiple
+router.post('/packages', uploadMultiple, createPackage);
+router.put('/packages/:id', uploadMultiple, updatePackage);
 router.get("/packages", getAgencyPackages);
 router.get("/packages/:id", getPackage);
-router.put("/packages/:id", updatePackage);
 router.delete("/packages/:id", deletePackage);
 router.patch("/packages/:id/featured", toggleFeatured);
 router.patch("/packages/:id/status", updateStatus);

@@ -6,12 +6,14 @@ const {
   updateTravelerProfile,
   changeTravelerPassword
 } = require("../controller/travelerProfileController");
-
+const { uploadTravelerProfile } = require("../utils/upload");
+// Apply auth middleware
 router.use(protect);
 router.use(restrictTo("traveler"));
 
+// Profile routes
 router.get("/profile", getTravelerProfile);
-router.put("/profile", updateTravelerProfile);
+router.put("/profile", uploadTravelerProfile, updateTravelerProfile);
 router.put("/profile/password", changeTravelerPassword);
 
 module.exports = router;

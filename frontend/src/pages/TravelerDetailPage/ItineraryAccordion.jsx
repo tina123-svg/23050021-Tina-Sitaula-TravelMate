@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ChevronDown, MapPin, Coffee, Home, Camera } from "lucide-react";
 
 const ItineraryAccordion = ({ itinerary }) => {
-  const [expandedDays, setExpandedDays] = useState([0]); // First day expanded by default
+  const [expandedDays, setExpandedDays] = useState([0]);  
 
   const toggleDay = (dayIndex) => {
     setExpandedDays(prev => 

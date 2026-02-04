@@ -1,30 +1,81 @@
-// controllers/dashboardController.js
 const Package = require("../models/Package");
 const Booking = require("../models/Booking");
+const Review = require("../models/Review");
 
- exports.getDashboardStats = async (req, res) => {
+exports.getDashboardStats = async (req, res) => {
   try {
     const agencyId = req.user.id;
 
-    // Simple counts - no complex aggregations
-    const totalPackages = await Package.countDocuments({ agencyId });
+    // 1. Get all packages by this agency
+    const packages = await Package.find({ agencyId });
+
+    // 2. Calculate stats from packages
+    let totalPackages = 0;
+    let totalReviews = 0;
+    let totalRatingSum = 0;
+    let ratedPackagesCount = 0;
+
+    packages.forEach(pkg => {
+      totalPackages++;
+      totalReviews += pkg.rating.count || 0;
+
+      if (pkg.rating.average > 0) {
+        totalRatingSum += pkg.rating.average;
+        ratedPackagesCount++;
+      }
+    });
+
+    // 3. Calculate average rating (only from rated packages)
+    const avgRating = ratedPackagesCount > 0
+      ? (totalRatingSum / ratedPackagesCount).toFixed(1)
+      : 0;
+
+    // 4. Active bookings count
     const activeBookings = await Booking.countDocuments({
       agencyId,
       status: { $in: ["pending", "confirmed"] }
     });
 
-    // Unique customers count
+    // 5. Unique customers count
     const totalCustomers = await Booking.distinct("travelerId", { agencyId });
 
-    // Recent bookings (3 only)
+    // 6. Recent bookings
     const recentBookings = await Booking.find({ agencyId })
       .populate("packageId", "title")
       .sort({ createdAt: -1 })
       .limit(3)
-      .select("travelers startDate status");
+      .select("travelers startDate status createdAt")
+      .lean();
 
-    // Recent reviews - empty for now
-    const recentReviews = [];
+    // 7. Recent reviews (from all packages)
+    const packageIds = packages.map(p => p._id);
+    const recentReviews = await Review.find({
+      packageId: { $in: packageIds }
+    })
+      .populate('userId', 'fullName')
+      .populate('packageId', 'title')
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+
+    // 8. Format recent reviews
+    const formattedReviews = recentReviews.map(review => ({
+      id: review._id,
+      customer: review.userId?.fullName || "Anonymous",
+      rating: review.rating,
+      comment: review.comment,
+      date: formatDate(review.createdAt),
+      package: review.packageId?.title || "Unknown Package"
+    }));
+
+    // 9. Format recent bookings
+    const formattedBookings = recentBookings.map(booking => ({
+      id: booking._id,
+      package: booking.packageId?.title || "Unknown Package",
+      date: formatDate(booking.startDate || booking.createdAt),
+      travelers: booking.travelers,
+      status: booking.status
+    }));
 
     return res.status(200).json({
       success: true,
@@ -33,15 +84,11 @@ const Booking = require("../models/Booking");
           totalPackages,
           activeBookings,
           totalCustomers: totalCustomers.length,
-          avgRating: 4.8 
+          avgRating: parseFloat(avgRating),
+          totalReviews
         },
-        recentBookings: recentBookings.map(b => ({
-          package: b.packageId?.title || "Unknown Package",
-          date: b.startDate.toISOString().split("T")[0],
-          travelers: b.travelers,
-          status: b.status
-        })),
-        recentReviews 
+        recentBookings: formattedBookings,
+        recentReviews: formattedReviews
       }
     });
 
@@ -54,3 +101,45 @@ const Booking = require("../models/Booking");
     });
   }
 };
+
+// Helper function
+function formatDate(date) {
+  if (!date) return "N/A";
+
+  const d = new Date(date);
+  const now = new Date();
+  const diffTime = Math.abs(now - d);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+// Helper function
+function formatDate(date) {
+  if (!date) return "N/A";
+
+  const d = new Date(date);
+  const now = new Date();
+  const diffTime = Math.abs(now - d);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}

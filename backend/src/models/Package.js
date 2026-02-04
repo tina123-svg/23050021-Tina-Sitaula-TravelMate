@@ -14,6 +14,7 @@ const itineraryDaySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
   icon: {
     type: String,
     default: "🏔️"
@@ -27,7 +28,7 @@ const itineraryDaySchema = new mongoose.Schema({
   altitude: String,
   distance: String,
   tips: String
-}); ``
+});
 
 const packageSchema = new mongoose.Schema({
   agencyId: {
@@ -93,7 +94,6 @@ const packageSchema = new mongoose.Schema({
     }
   },
 
-  // In models/Package.js, add this to the schema:
   availableDates: [{
     date: {
       type: Date,
@@ -109,8 +109,22 @@ const packageSchema = new mongoose.Schema({
       default: 10
     }
   }],
-
-  // Also add these fields if missing:
+  route: {
+    startPoint: {
+      name: String,
+      coordinates: {
+        lat: Number,
+        lng: Number
+      }
+    },
+    endPoint: {
+      name: String,
+      coordinates: {
+        lat: Number,
+        lng: Number
+      }
+    }
+  },
   cancellationPolicy: {
     freeCancellationDays: {
       type: Number,

@@ -35,13 +35,19 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         setUserInfo(currentUser);
 
-        // Check if user can review this package
+        // Check if user can review this package - THIS SHOULD WORK NOW
         const response = await packageDetailService.canUserReview(packageId);
+
         if (response.success && response.canReview) {
           setCanReview(true);
+        } else {
+          setCanReview(false);
+          // Log why they can't review
+          console.log("Can't review because:", response.message);
         }
       } catch (error) {
         console.error("Error checking review permission:", error);
+        setCanReview(false);
       }
     };
 
@@ -78,16 +84,29 @@ const ReviewsSection = ({ rating, reviewCount, packageId }) => {
 
     try {
       setSubmitting(true);
-      const response = await packageDetailService.submitReview(packageId, {
-        ...newReview,
-        packageId: packageId
-      });
+
+      // Get user info for debugging only
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log("Current user:", userData); // Debug only
+      console.log("Package ID:", packageId);
+
+
+      // Send only what backend needs
+      const reviewData = {
+        rating: newReview.rating,
+        comment: newReview.comment,
+        packageId: packageId,
+      };
+
+      console.log("Submitting review with data:", reviewData);
+
+      const response = await packageDetailService.submitReview(packageId, reviewData);
 
       if (response.success) {
         // Add new review to list
         setReviews([response.data, ...reviews]);
         setTotalReviews(totalReviews + 1);
-        setNewReview({ rating: 5, comment: "", travelerName: "" });
+        setNewReview({ rating: 5, comment: "" });
         setShowReviewForm(false);
         alert("Review submitted successfully!");
       }

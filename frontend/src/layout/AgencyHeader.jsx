@@ -1,12 +1,24 @@
 // components/agency/AgencyHeader.jsx
 import React from "react";
-import { Link } from "react-router-dom";
-import { Bell, HelpCircle, Settings, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom"; // add useNavigate
+import { Bell, LogOut } from "lucide-react";
 
 const AgencyHeader = () => {
+  const navigate = useNavigate();
+
   const agencyData = {
     name: "Himalayan Adventures",
     verified: true
+  };
+
+  const handleLogout = () => {
+    // 1. Clear auth data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('agencyData');
+
+    navigate('/');
+
   };
 
   return (
@@ -15,7 +27,7 @@ const AgencyHeader = () => {
         <div className="flex items-center justify-between">
           {/* Logo & Agency Name */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center mr-8">
+            <Link to="/agency-dashboard" className="flex items-center mr-8">
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">T</span>
               </div>
@@ -41,26 +53,13 @@ const AgencyHeader = () => {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-600 hover:text-gray-800 relative">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
 
-            <button className="p-2 text-gray-600 hover:text-gray-800">
-              <HelpCircle size={20} />
-            </button>
-
-            <button className="p-2 text-gray-600 hover:text-gray-800">
-              <Settings size={20} />
-            </button>
-
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="font-bold text-green-700 text-sm">
-                {agencyData.name.charAt(0)}
-              </span>
-            </div>
-
-            <button className="p-2 text-gray-600 hover:text-gray-800">
+            {/* Logout Button*/}
+            <button
+              onClick={handleLogout}
+              className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition"
+              title="Logout"
+            >
               <LogOut size={20} />
             </button>
           </div>

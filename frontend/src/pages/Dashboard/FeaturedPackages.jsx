@@ -96,6 +96,7 @@ export default function FeaturedPackages() {
                 duration={pkg.duration}
                 difficulty={pkg.difficulty}
                 image={pkg.image || "/assets/images/default-package.jpg"}
+                images={pkg.images}
               />
             ))}
           </div>

@@ -131,6 +131,8 @@ const login = async (req, res) => {
 };
 
 // FORGOT PASSWORD - Generate OTP
+const sendEmail = require("../utils/sendEmail"); 
+
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -143,16 +145,52 @@ const forgotPassword = async (req, res) => {
 
   // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+  const otpExpiry = Date.now() + 10 * 60 * 1000;
 
   user.resetOtp = otp;
   user.resetOtpExpiry = otpExpiry;
   await user.save();
 
-  console.log(`OTP for ${email}: ${otp} (expires in 10 min)`);
+  // Send real email
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Travel Mate - Password Reset OTP",
+      text: `Your one-time password (OTP) is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you did not request this reset, please ignore this email.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #0F4CB5; text-align: center;">Travel Mate Password Reset</h2>
+          <p style="font-size: 16px;">Hello,</p>
+          <p style="font-size: 16px;">You requested a password reset. Your OTP is:</p>
+          <h1 style="font-size: 36px; text-align: center; letter-spacing: 10px; color: #F59E0B; margin: 20px 0;">
+            ${otp}
+          </h1>
+          <p style="font-size: 16px;">This code will expire in <strong>10 minutes</strong>.</p>
+          <p style="font-size: 14px; color: #666;">
+            If you did not request this, please ignore this email or contact support immediately.
+          </p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="font-size: 14px; color: #999; text-align: center;">
+            © ${new Date().getFullYear()} Travel Mate. All rights reserved.
+          </p>
+        </div>
+      `,
+    });
 
-  res.json({ success: true, message: "OTP sent! Check console" });
+    res.json({
+      success: true,
+      message: "OTP sent to your email address",
+    });
+  } catch (emailError) {
+    console.error("Email sending failed:", emailError);
+    // Still save OTP even if email fails
+    res.status(500).json({
+      success: false,
+      message: "Failed to send email. Please try again or contact support.",
+    });
+  }
 };
+
 // VERIFY OTP
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;

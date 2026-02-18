@@ -88,19 +88,12 @@ const handleLogin = async (e: React.FormEvent) => {
             </div>
 
             {/* Social Buttons */}
-            <button className="w-full flex items-center justify-center gap-3 bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition">
+            {/* <button className="w-full flex items-center justify-center gap-3 bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition">
               <Chrome size={18} />
               Continue with Google
-            </button>
+            </button> */}
 
-            <div className="flex gap-4">
-              <button className="w-1/2 flex items-center justify-center bg-white/20 py-3 rounded-lg text-white hover:bg-white/30 transition">
-                <Facebook size={18} />
-              </button>
-              <button className="w-1/2 flex items-center justify-center bg-white/20 py-3 rounded-lg text-white hover:bg-white/30 transition">
-                <Apple size={18} />
-              </button>
-            </div>
+           
 
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-4">

@@ -11,9 +11,9 @@ const StatsCard = ({ title, value, color, change, suffix = '', description }) =>
             {suffix && <span className="text-lg text-gray-600 ml-1">{suffix}</span>}
           </div>
         </div>
-        <div className={`${color} p-3 rounded-lg`}>
+        {/* <div className={`${color} p-3 rounded-lg`}>
           <Icon size={24} className="text-white" />
-        </div>
+        </div> */}
       </div>
 
       {description && (

@@ -13,7 +13,7 @@ const Package = require("../models/Package");
 //         select: 'name email phone description agencyName contactNumber avatar'
 //       });
 
-//     if (!package) {
+//     if (!package) {itinerary
 //       return res.status(404).json({
 //         success: false,
 //         message: "Package not found"

@@ -1,28 +1,52 @@
 // components/agency/PackageForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Upload, Calendar, Users, MapPin } from 'lucide-react';
 import { packageService } from '../../services/packageService';
 
-const safeParseJSONArray = (str) => {
-  if (Array.isArray(str)) return str;
-  if (!str) return [];
-
-  try {
-    const parsed = JSON.parse(str);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    if (typeof str === 'string' && str.includes(',')) {
-      return str.split(',').map(item => item.trim()).filter(item => item);
-    }
-    if (typeof str === 'string' && str.trim()) {
-      return [str];
-    }
-    return [];
-  }
-};
-
 const PackageForm = ({ onClose, onSave, initialData = null }) => {
-  const [formData, setFormData] = useState(initialData || {
+  // Helper to parse initial data
+  const parseInitialData = () => {
+    if (!initialData) return null;
+
+    return {
+      ...initialData,
+      // Convert any JSON strings to arrays
+      bestTimeToGo: Array.isArray(initialData.bestTimeToGo)
+        ? initialData.bestTimeToGo
+        : (typeof initialData.bestTimeToGo === 'string'
+          ? JSON.parse(initialData.bestTimeToGo || '[]')
+          : []),
+      highlights: Array.isArray(initialData.highlights)
+        ? initialData.highlights
+        : (typeof initialData.highlights === 'string'
+          ? JSON.parse(initialData.highlights || '[]')
+          : ['']),
+      included: Array.isArray(initialData.included)
+        ? initialData.included
+        : (typeof initialData.included === 'string'
+          ? JSON.parse(initialData.included || '[]')
+          : ['']),
+      excluded: Array.isArray(initialData.excluded)
+        ? initialData.excluded
+        : (typeof initialData.excluded === 'string'
+          ? JSON.parse(initialData.excluded || '[]')
+          : ['']),
+      whatToBring: Array.isArray(initialData.whatToBring)
+        ? initialData.whatToBring
+        : (typeof initialData.whatToBring === 'string'
+          ? JSON.parse(initialData.whatToBring || '[]')
+          : ['']),
+      route: typeof initialData.route === 'string'
+        ? JSON.parse(initialData.route || '{}')
+        : initialData.route || {
+          startPoint: { name: '', coordinates: { lat: '', lng: '' } },
+          endPoint: { name: '', coordinates: { lat: '', lng: '' } }
+        },
+      itinerary: Array.isArray(initialData.itinerary) ? initialData.itinerary : [],
+    };
+  };
+
+  const [formData, setFormData] = useState(parseInitialData() || {
     title: '',
     description: '',
     overview: '',
@@ -32,16 +56,16 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
     destination: '',
     category: 'trekking',
     groupSize: { min: 2, max: 12 },
-    bestTimeToGo: JSON.stringify([]),
-    highlights: JSON.stringify(['']),
-    included: JSON.stringify(['']),
-    excluded: JSON.stringify(['']),
-    itinerary: JSON.stringify([]),
+    bestTimeToGo: [],
+    highlights: [''],
+    included: [''],
+    excluded: [''],
+    itinerary: [],
     images: [],
     featured: false,
     physicalRequirements: '',
-    whatToBring: JSON.stringify(['']),
-    route: JSON.stringify({
+    whatToBring: [''],
+    route: {
       startPoint: {
         name: '',
         coordinates: { lat: '', lng: '' }
@@ -50,7 +74,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
         name: '',
         coordinates: { lat: '', lng: '' }
       }
-    })
+    }
   });
 
   const [currentItineraryDay, setCurrentItineraryDay] = useState({
@@ -97,48 +121,29 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
     }));
   };
 
+  // Array field handlers - SIMPLE now because we're using arrays!
   const handleArrayField = (field, index, value) => {
-    try {
-      const currentArray = JSON.parse(formData[field] || '[]');
-      const newArray = [...currentArray];
-      newArray[index] = value;
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: JSON.stringify(newArray)
-      }));
-    } catch (error) {
-      console.error('Error parsing array:', error);
-    }
+    setFormData(prev => {
+      const currentArray = [...(prev[field] || [])];
+      currentArray[index] = value;
+      return { ...prev, [field]: currentArray };
+    });
   };
 
   const addArrayField = (field) => {
-    try {
-      const currentArray = JSON.parse(formData[field] || '[]');
-      const newArray = [...currentArray, ''];
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: JSON.stringify(newArray)
-      }));
-    } catch (error) {
-      console.error('Error adding to array:', error);
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), '']
+    }));
   };
 
   const removeArrayField = (field, index) => {
-    try {
-      const currentArray = JSON.parse(formData[field] || '[]');
-      const newArray = currentArray.filter((_, i) => i !== index);
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: JSON.stringify(newArray)
-      }));
-    } catch (error) {
-      console.error('Error removing from array:', error);
-    }
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
   };
+
   const handleItineraryChange = (e) => {
     const { name, value } = e.target;
     setCurrentItineraryDay(prev => ({
@@ -155,7 +160,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
 
     setFormData(prev => ({
       ...prev,
-      itinerary: [...prev.itinerary, { ...currentItineraryDay }]
+      itinerary: [...(prev.itinerary || []), { ...currentItineraryDay }]
     }));
 
     // Reset for next day
@@ -199,7 +204,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
 
     const formDataToSend = new FormData();
 
-    // ONLY send these fields (don't send read-only fields)
+    // Fields to send (all will be stringified when needed)
     const fieldsToSend = [
       'title', 'description', 'overview', 'price', 'duration',
       'difficulty', 'destination', 'category', 'groupSize',
@@ -210,9 +215,11 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
 
     fieldsToSend.forEach(key => {
       if (formData[key] !== undefined) {
-        const value = formData[key];
-        const stringValue = typeof value === 'object' ? JSON.stringify(value) : value;
-        formDataToSend.append(key, stringValue);
+        // Always stringify objects/arrays, keep primitives as is
+        const value = typeof formData[key] === 'object'
+          ? JSON.stringify(formData[key])
+          : formData[key];
+        formDataToSend.append(key, value);
       }
     });
 
@@ -220,8 +227,6 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
     formData.images?.forEach((file) => {
       formDataToSend.append('images', file);
     });
-
-    console.log("Sending fields:", [...formDataToSend.keys()]);
 
     try {
       const response = initialData
@@ -240,7 +245,6 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
 
   const [imagePreviews, setImagePreviews] = useState([]);
 
-  // Handle multiple file select + preview
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 10) {
@@ -255,6 +259,17 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
       ...prev,
       images: [...(prev.images || []), ...files]
     }));
+  };
+
+  // Best Time to Go checkbox handler
+  const handleBestTimeToggle = (time) => {
+    setFormData(prev => {
+      const current = prev.bestTimeToGo || [];
+      const newArray = current.includes(time)
+        ? current.filter(t => t !== time)
+        : [...current, time];
+      return { ...prev, bestTimeToGo: newArray };
+    });
   };
 
   return (
@@ -309,11 +324,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Brief description that appears on package cards"
                   required
-                  minLength="100"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Min. 100 characters: {formData.description.length}/100
-                </p>
               </div>
 
               {/* Overview */}
@@ -455,7 +466,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                         value={formData.groupSize.min}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
-                          groupSize: { ...prev.groupSize, min: e.target.value }
+                          groupSize: { ...prev.groupSize, min: Number(e.target.value) }
                         }))}
                         className="w-full p-3 pl-10 border border-gray-300 rounded-lg"
                         min="1"
@@ -469,7 +480,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                       value={formData.groupSize.max}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
-                        groupSize: { ...prev.groupSize, max: e.target.value }
+                        groupSize: { ...prev.groupSize, max: Number(e.target.value) }
                       }))}
                       className="w-full p-3 border border-gray-300 rounded-lg"
                       min={formData.groupSize.min}
@@ -478,75 +489,24 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                 </div>
               </div>
 
-              {/* Best Time to Go */}
+              {/* Best Time to Go - SIMPLIFIED */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Best Time to Go
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {bestTimes.map((time, index) => (
+                  {bestTimes.map((time) => (
                     <label
-                      key={`besttime-${index}`}
-                      className={`flex items-center p-3 border rounded-lg cursor-pointer ${(function () {
-                        const val = formData.bestTimeToGo;
-                        if (Array.isArray(val)) return val.includes(time);
-                        if (typeof val === 'string' && val.startsWith('[')) {
-                          try {
-                            const arr = JSON.parse(val);
-                            return Array.isArray(arr) && arr.includes(time);
-                          } catch {
-                            return false;
-                          }
-                        }
-                        if (typeof val === 'string') return val === time;
-                        return false;
-                      })() ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
+                      key={time}
+                      className={`flex items-center p-3 border rounded-lg cursor-pointer ${formData.bestTimeToGo?.includes(time)
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
                     >
                       <input
                         type="checkbox"
-                        checked={(function () {
-                          const val = formData.bestTimeToGo;
-                          if (Array.isArray(val)) return val.includes(time);
-                          if (typeof val === 'string' && val.startsWith('[')) {
-                            try {
-                              const arr = JSON.parse(val);
-                              return Array.isArray(arr) && arr.includes(time);
-                            } catch {
-                              return false;
-                            }
-                          }
-                          if (typeof val === 'string') return val === time;
-                          return false;
-                        })()} onChange={(e) => {
-                          // Get current value
-                          const current = formData.bestTimeToGo;
-
-                          // Handle both cases: if string, convert to array
-                          let currentArray;
-                          if (typeof current === 'string') {
-                            try {
-                              currentArray = JSON.parse(current);
-                            } catch {
-                              currentArray = current ? [current] : [];
-                            }
-                          } else if (Array.isArray(current)) {
-                            currentArray = current;
-                          } else {
-                            currentArray = [];
-                          }
-
-                          let newArray;
-                          if (e.target.checked) {
-                            newArray = [...currentArray, time];
-                          } else {
-                            newArray = currentArray.filter(t => t !== time);
-                          }
-
-                          setFormData(prev => ({
-                            ...prev,
-                            bestTimeToGo: JSON.stringify(newArray)
-                          }));
-                        }}
+                        checked={formData.bestTimeToGo?.includes(time) || false}
+                        onChange={() => handleBestTimeToggle(time)}
                         className="mr-3"
                       />
                       {time}
@@ -554,13 +514,12 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   ))}
                 </div>
               </div>
-              {/* map */}
+
               {/* Route Points */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="inline mr-2" size={16} />
                   Trek Route Points
-                  <span className="text-xs text-gray-500 ml-2">(For map display)</span>
                 </label>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -724,21 +683,9 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     </div>
                   </div>
                 </div>
-
-                <p className="text-xs text-gray-500 mt-2">
-                  Add start and end point coordinates to display trekking route on map.
-                  <a
-                    href="https://www.latlong.net/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 ml-1"
-                  >
-                    Find coordinates here
-                  </a>
-                </p>
               </div>
 
-              {/* image */}
+              {/* Images */}
               <div className="mt-8">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Package Images (up to 10)
@@ -791,40 +738,29 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                 )}
               </div>
 
-
-              {/* Highlights */}
+              {/* Highlights - SIMPLIFIED */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Key Highlights
                 </label>
-                {(() => {
-                  try {
-                    const highlights = JSON.parse(formData.highlights || '[]');
-                    if (Array.isArray(highlights)) {
-                      return highlights.map((highlight, index) => (
-                        <div key={index} className="flex gap-2 mb-2">
-                          <input
-                            type="text"
-                            value={highlight}
-                            onChange={(e) => handleArrayField('highlights', index, e.target.value)}
-                            className="flex-1 p-3 border border-gray-300 rounded-lg"
-                            placeholder="e.g., Sunrise view from Kala Patthar"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeArrayField('highlights', index)}
-                            className="p-3 text-red-500 hover:bg-red-50 rounded-lg"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                      ));
-                    }
-                  } catch {
-                    // If not valid JSON, treat as empty
-                  }
-                  return [];
-                })()}
+                {(formData.highlights || []).map((highlight, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={highlight}
+                      onChange={(e) => handleArrayField('highlights', index, e.target.value)}
+                      className="flex-1 p-3 border border-gray-300 rounded-lg"
+                      placeholder="e.g., Sunrise view from Kala Patthar"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeArrayField('highlights', index)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
                 <button
                   type="button"
                   onClick={() => addArrayField('highlights')}
@@ -860,7 +796,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
             <h3 className="text-xl font-bold text-gray-800 mb-6">Itinerary</h3>
 
             {/* Existing Itinerary Days */}
-            {formData.itinerary.map((day, index) => (
+            {(formData.itinerary || []).map((day, index) => (
               <div key={index} className="mb-4 p-4 border border-gray-200 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center">
@@ -898,7 +834,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     onChange={handleItineraryChange}
                     className="w-full p-3 border border-gray-300 rounded-lg"
                     placeholder="e.g., Arrival in Kathmandu"
-                    required
+
                   />
                 </div>
                 <div>
@@ -925,7 +861,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     rows="3"
                     className="w-full p-3 border border-gray-300 rounded-lg"
                     placeholder="Detailed description of the day's activities"
-                    required
+
                   />
                 </div>
               </div>
@@ -940,12 +876,12 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
             </div>
           </div>
 
-          {/* Included/Excluded */}
+          {/* Included/Excluded - SIMPLIFIED */}
           <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Included */}
             <div>
               <h3 className="text-xl font-bold text-gray-800 mb-4">What's Included</h3>
-              {safeParseJSONArray(formData.excluded).map((item, index) => (
+              {(formData.included || []).map((item, index) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <input
                     type="text"
@@ -973,10 +909,10 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
               </button>
             </div>
 
-            {/* Excluded */}
+            {/* Excluded - SIMPLIFIED */}
             <div>
               <h3 className="text-xl font-bold text-gray-800 mb-4">What's Excluded</h3>
-              {formData.excluded.map((item, index) => (
+              {(formData.excluded || []).map((item, index) => (
                 <div key={index} className="flex gap-2 mb-2">
                   <input
                     type="text"

@@ -7,6 +7,7 @@ import BookingWidget from "./BookingWidget";
 import ItineraryAccordion from "./ItineraryAccordion";
 import AgencyCard from "./AgencyCard";
 import ReviewsSection from "./ReviewsSection";
+import InclusionsExclusions from "./InclusionsExclusions";
 import RelatedPackages from "./RelatedPackages";
 import MapSection from "./MapSection";
 import { packageDetailService } from "../../services/packageDetailsService";
@@ -336,18 +337,21 @@ const PackageDetailPage = () => {
 
               {/* Navigation Tabs */}
               <div className="border-b mb-8">
-                <div className="flex space-x-8">
-                  {["overview", "itinerary", "map", "reviews"].map((tab) => (
+                <div className="flex space-x-8 overflow-x-auto pb-2">
+                  {["overview", "inclusions", "itinerary", "map", "reviews"].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`py-3 px-1 font-medium text-lg capitalize ${activeTab === tab
+                      className={`py-3 px-1 font-medium text-lg capitalize whitespace-nowrap ${activeTab === tab
                         ? "text-blue-600 border-b-2 border-blue-600"
                         : "text-gray-500 hover:text-gray-700"
                         }`}
                     >
                       {tab === "overview" ? "Overview" :
-                        tab === "itinerary" ? "Day-by-Day Itinerary" : tab === "map" ? "Route Map" : "Reviews"}
+                        tab === "inclusions" ? "What's Included" :
+                          tab === "itinerary" ? "Day-by-Day Itinerary" :
+                            tab === "map" ? "Route Map" :
+                              "Reviews"}
                     </button>
                   ))}
                 </div>
@@ -413,6 +417,14 @@ const PackageDetailPage = () => {
                     packageId={id}
                   />
                 )}
+
+                {activeTab === "inclusions" && (
+                  <InclusionsExclusions
+                    inclusions={packageDetail.included || []}
+                    exclusions={packageDetail.excluded || []}
+                  />
+                )}
+
               </div>
 
               {/* Agency Information*/}

@@ -26,7 +26,7 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       await axios.post(`${API_URL}/forgotpassword`, { email });
-      toast.success("OTP sent! Check server console");
+      toast.success("OTP sent! Check your email");
       setStep(2);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");

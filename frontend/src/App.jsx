@@ -19,36 +19,91 @@ import ProfilePage from "./pages/AgencyDashboard/ProfilePage";
 import TravelerProfilePage from "./pages/TravlerDashboard/profilePage";
 import MyBookingsPage from "./pages/TravlerDashboard/myBookingPage";
 import WishlistPage from "./pages/TravlerDashboard/wishlistPage";
+import ProtectedRoute from "./components/ProtectedRoute"; 
+
 export default function App() {
   return (
     <>
-
       <Routes>
-        <Route path="/" element={<Navigate to="/Homepage" />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/homepage" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/homepage" element={<HomePage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/traveler-dashboard" element={<TravelerDashbord />} />
         <Route path="/package" element={<Package />} />
-        <Route path="/Compare" element={<ComparePackage />} />
         <Route path="/package/:id" element={<PackageDetailPage />} />
-        <Route path="/booking/:packageId" element={<BookingPage />} />
-        <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
-        <Route path="/agency-dashboard" element={<AgencyDashboard />} />
-        <Route path="/agency-packages" element={<PackagesPage />} />
-        <Route path="/agency-booking" element={<BookingsPage />} />
-        <Route path="/agency-Review" element={<ReviewPage />} />
-        <Route path="/agency-Profile" element={<ProfilePage />} />
-        <Route path="/profile" element={<TravelerProfilePage />} />
-        <Route path="/my-bookings" element={<MyBookingsPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/Compare" element={<ComparePackage />} />
 
+        {/* Traveler Routes */}
+        <Route path="/traveler-dashboard" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <TravelerDashbord />
+          </ProtectedRoute>
+        } />
+        <Route path="/booking/:packageId" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <BookingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/booking-confirmation/:bookingId" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <BookingConfirmationPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <TravelerProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/my-bookings" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <MyBookingsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/wishlist" element={
+          <ProtectedRoute allowedRoles={['traveler']}>
+            <WishlistPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Agency Routes */}
+        <Route path="/agency-dashboard" element={
+          <ProtectedRoute allowedRoles={['agency']}>
+            <AgencyDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/agency-packages" element={
+          <ProtectedRoute allowedRoles={['agency']}>
+            <PackagesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/agency-booking" element={
+          <ProtectedRoute allowedRoles={['agency']}>
+            <BookingsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/agency-Review" element={
+          <ProtectedRoute allowedRoles={['agency']}>
+            <ReviewPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/agency-Profile" element={
+          <ProtectedRoute allowedRoles={['agency']}>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Routes */}
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        <Route path="*" element={<Navigate to="/homepage" />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={4000} />
-
     </>
   );
 }
-

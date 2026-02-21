@@ -208,7 +208,7 @@ const AgencyDashboard = () => {
               </p>
             </div>
             <a
-              href="/agency/bookings"
+              href="/agency-booking"
               className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center"
             >
               View All
@@ -269,7 +269,7 @@ const AgencyDashboard = () => {
               </p>
             </div>
             <a
-              href="/agency/reviews"
+              href="/agency-review"
               className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center"
             >
               View All

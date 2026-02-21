@@ -4,8 +4,9 @@ import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
 import PackageCard from '../../components/Card';
 import { Calendar, Heart, User, ArrowRight, Loader, Package as PackageIcon } from "lucide-react";
+import travelerBookingService from '../../services/travelerBookingService';
 import { travelerService } from "../../services/travelerService";
-// import { bookingService } from "../../services/bookingService";  
+import { wishlistService } from "../../services/wishlistService"; // Import wishlist service
 
 export default function TravelerDashboard() {
   const [loading, setLoading] = useState(true);
@@ -27,33 +28,67 @@ export default function TravelerDashboard() {
     try {
       setLoading(true);
 
-      // Fetch user info
+      // Get user info
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      const userName = userData.name || userData.fullName || "Traveler";
+      const userName = userData.fullName || userData.name || "Traveler";
 
-      // Fetch featured packages for recommendations
-      const packagesResponse = await travelerService.getFeaturedPackages();
+      // Fetch all data in parallel
+      const [bookingsResponse, packagesResponse, wishlistResponse] = await Promise.allSettled([
+        travelerBookingService.getMyBookings(),
+        travelerService.getFeaturedPackages(),
+        wishlistService.getWishlist() // Fetch REAL wishlist data
+      ]);
 
-      // Fetch user bookings (mock for now)
-      // const bookingsResponse = await bookingService.getUserBookings();
+      // Process bookings data
+      let totalBookings = 0;
+      let upcomingCount = 0;
+      let recent = [];
 
-      if (packagesResponse.success) {
-        setRecommendedPackages(packagesResponse.data || []);
+      if (bookingsResponse.status === 'fulfilled' && bookingsResponse.value?.success) {
+        const bookings = bookingsResponse.value.data || [];
+
+        totalBookings = bookings.length;
+
+        // Count upcoming trips (confirmed + startDate in future)
+        const today = new Date();
+        upcomingCount = bookings.filter(b =>
+          b.status === 'confirmed' && new Date(b.startDate) > today
+        ).length;
+
+        // Get 3 most recent bookings
+        recent = bookings
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3)
+          .map(b => ({
+            id: b._id,
+            bookingId: b.bookingId,
+            packageName: b.packageId?.title || 'Package',
+            date: formatDate(b.startDate || b.createdAt),
+            status: b.status.charAt(0).toUpperCase() + b.status.slice(1),
+            travelers: b.travelers
+          }));
       }
 
-      // Set stats with real data
-      setStats({
-        name: userName.split(' ')[0], // First name only
-        bookings: 3, // TODO: Get from API
-        wishlist: 7, // TODO: Get from API
-        upcomingTrips: 1 // TODO: Get from API
+       
+      let wishlistCount = 0;
+      if (wishlistResponse.status === 'fulfilled' && wishlistResponse.value?.success) {
+        wishlistCount = wishlistResponse.value.wishlist?.length || 0;
+        console.log('Wishlist count:', wishlistCount);
+      }
+
+      // Handle packages
+      if (packagesResponse.status === 'fulfilled' && packagesResponse.value?.success) {
+        setRecommendedPackages(packagesResponse.value.data || []);
+      }
+
+       setStats({
+        name: userName.split(' ')[0],
+        bookings: totalBookings,
+        wishlist: wishlistCount,  
+        upcomingTrips: upcomingCount
       });
 
-      // Mock recent bookings
-      setRecentBookings([
-        { id: 1, packageName: "Everest Base Camp Trek", date: "2024-06-15", status: "Confirmed" },
-        { id: 2, packageName: "Pokhara Adventure", date: "2024-05-20", status: "Completed" },
-      ]);
+      setRecentBookings(recent);
 
     } catch (error) {
       console.error("Dashboard error:", error);
@@ -62,12 +97,27 @@ export default function TravelerDashboard() {
     }
   };
 
-  // const handlePackageClick = (id) => {
-  //   navigate(`/package/${id}`);
-  // };
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-  const handleBookingClick = (id) => {
-    navigate(`/my-bookings/${id}`);
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleBookingClick = (bookingId) => {
+    navigate(`/booking-confirmation/${bookingId}`);
   };
 
   if (loading) {
@@ -116,7 +166,7 @@ export default function TravelerDashboard() {
           </div>
         </section>
 
-        {/* Quick Stats */}
+        {/* Quick Stats - ALL NUMBERS ARE REAL NOW! */}
         <section className="mb-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Bookings Card */}
@@ -138,7 +188,7 @@ export default function TravelerDashboard() {
               </div>
             </div>
 
-            {/* Wishlist Card */}
+            {/* Wishlist Card - NOW WITH REAL COUNT! */}
             <div
               onClick={() => navigate('/wishlist')}
               className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow cursor-pointer"
@@ -157,9 +207,9 @@ export default function TravelerDashboard() {
               </div>
             </div>
 
-            {/* Upcoming Trips */}
+            {/* Upcoming Trips - REAL COUNT */}
             <div
-              onClick={() => navigate('/my-bookings')}
+              onClick={() => navigate('/my-bookings?filter=upcoming')}
               className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow cursor-pointer"
             >
               <div className="flex items-center justify-between mb-4">
@@ -187,7 +237,7 @@ export default function TravelerDashboard() {
                 onClick={() => navigate('/my-bookings')}
                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
               >
-                View All →
+                View All ({stats.bookings}) →
               </button>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -200,13 +250,14 @@ export default function TravelerDashboard() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-medium text-gray-800">{booking.packageName}</h3>
-                      <p className="text-sm text-gray-500">Date: {booking.date}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <p className="text-sm text-gray-500">Date: {booking.date}</p>
+                        <p className="text-sm text-gray-500">• {booking.travelers} traveler{booking.travelers > 1 ? 's' : ''}</p>
+                        <span className="text-xs text-gray-400">ID: {booking.bookingId}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${booking.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
-                        booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                         {booking.status}
                       </span>
                       <ArrowRight size={16} className="text-gray-400" />
@@ -244,11 +295,11 @@ export default function TravelerDashboard() {
                   title={pkg.title}
                   description={pkg.description}
                   price={pkg.price?.toLocaleString?.() || pkg.price}
-                  rating={typeof pkg.rating === 'object' ? (pkg.rating?.average ?? 0) : (pkg.rating ?? 0)}  
+                  rating={typeof pkg.rating === 'object' ? (pkg.rating?.average ?? 0) : (pkg.rating ?? 0)}
                   reviews={typeof pkg.rating === 'object' ? (pkg.rating?.count ?? 0) : (pkg.reviews ?? 0)}
                   duration={pkg.duration}
                   difficulty={pkg.difficulty}
-                  image={pkg.image}
+                  image={pkg.image || pkg.images?.[0]?.url}
                 />
               ))}
             </div>

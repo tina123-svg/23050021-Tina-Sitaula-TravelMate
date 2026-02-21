@@ -200,13 +200,13 @@ const BookingsPage = () => {
           <p className="text-gray-600">Manage all customer bookings</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <button
+          {/* <button
             onClick={handleExport}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             <Download size={18} className="mr-2" />
             Export
-          </button>
+          </button> */}
         </div>
       </div>
 

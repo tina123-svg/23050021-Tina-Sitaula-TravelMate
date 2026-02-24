@@ -26,7 +26,7 @@ export const paymentService = {
   // Get booking details
   getBookingDetails: async (bookingId) => {
     try {
-      const response = await api.get(`/bookings/${bookingId}`);
+      const response = await api.get(`/traveler/bookings/${bookingId}`);
       return response.data;
     } catch (error) {
       console.error('Get booking details error:', error);

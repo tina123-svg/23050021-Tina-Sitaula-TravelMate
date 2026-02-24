@@ -63,8 +63,7 @@ export default function SignUpPage() {
   navigate("/login");
 } else {
   localStorage.setItem("token", res.data.token);
-  toast.success("Signup successful!");
-  navigate("/login");
+   navigate("/login");
 }
       // navigate("/login");
     } catch (err: any) {
@@ -75,8 +74,7 @@ export default function SignUpPage() {
   };
 
   return (
-    // ... same structure as before, just update form and button
-    <div className="min-h-screen w-full flex items-center justify-center"
+     <div className="min-h-screen w-full flex items-center justify-center"
       style={{ background: `linear-gradient(115deg, #2435A1 0%, #2435A1 32%, white 32%, white 100%)` }}
     >
       <div className="w-[92%] max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">

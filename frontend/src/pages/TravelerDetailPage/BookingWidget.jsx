@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Calendar, Users, Tag, Shield, CreditCard } from "lucide-react";
+import { Calendar, Users, Shield, CreditCard } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const BookingWidget = ({
   package: pkg,
@@ -7,11 +9,13 @@ const BookingWidget = ({
   setSelectedDate,
   travelerCount,
   setTravelerCount,
-
   onBookNow
 }) => {
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTravelerPicker, setShowTravelerPicker] = useState(false);
+
+  // Get today's date (can't select past dates)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const price = typeof pkg.price === 'string'
     ? parseInt(pkg.price.replace(/,/g, ''))
@@ -21,85 +25,40 @@ const BookingWidget = ({
   const serviceFee = 1500;
   const total = baseTotal - discount + serviceFee;
 
-  const formatDate = (dateString) => {
-    const options = { weekday: 'short', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
-
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
       {/* Price Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <div className="text-2xl font-bold">
-              NPR {pkg.price}
-            </div>
-            <div className="text-blue-100 text-sm">per person</div>
-          </div>
-          {pkg.originalPrice && (
-            <div className="text-right">
-              <div className="text-lg line-through text-blue-200">
-                NPR {pkg.originalPrice}
-              </div>
-              <div className="text-lg font-bold">
-                Save NPR {(parseInt(pkg.originalPrice.replace(/,/g, '')) - price).toLocaleString()}
-              </div>
-            </div>
-          )}
-        </div>
-        {pkg.discount && (
-          <div className="inline-block bg-white text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
-            {pkg.discount}% OFF
-          </div>
-        )}
+        <div className="text-2xl font-bold">NPR {pkg.price}</div>
+        <div className="text-blue-100 text-sm">per person</div>
       </div>
 
       {/* Booking Form */}
       <div className="p-6">
-        {/* Date Selection */}
+        {/* Date Selection - Simple Calendar */}
         <div className="mb-6">
           <label className="flex items-center text-gray-700 font-medium mb-2">
             <Calendar size={18} className="mr-2" />
-            Select Date
+            Select Start Date
           </label>
-          <div className="relative">
-            <button
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              className="w-full p-3 border border-gray-300 rounded-lg text-left hover:border-gray-400"
-            >
-              {selectedDate ? formatDate(selectedDate) : "Choose a date"}
-            </button>
 
-            {showDatePicker && (
-              <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-xl z-10 p-4">
-                <div className="grid grid-cols-2 gap-2">
-                  {pkg.availableDates?.map((dateObj, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setSelectedDate(dateObj.date);
-                        setShowDatePicker(false);
-                      }}
-                      className={`p-3 rounded-lg border text-center ${selectedDate === dateObj.date
-                        ? "bg-blue-50 border-blue-500 text-blue-700"
-                        : "border-gray-200 hover:border-gray-300"
-                        }`}
-                    >
-                      <div className="font-medium">{formatDate(dateObj.date)}</div>
-                      <div className={`text-xs mt-1 ${dateObj.status === "available" ? "text-green-600" :
-                        dateObj.status === "filling" ? "text-orange-600" :
-                          "text-red-600"
-                        }`}>
-                        {dateObj.status === "available" ? `${dateObj.seats} seats left` :
-                          dateObj.status === "filling" ? "Filling fast" : "Sold out"}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <DatePicker
+            selected={selectedDate}
+            onChange={date => setSelectedDate(date)}
+            minDate={today}
+            inline
+            className="w-full"
+          />
+
+          <p className="text-sm text-gray-500 mt-2">
+            {selectedDate ? (
+              <>You'll start on <span className="font-medium">
+                {new Date(selectedDate).toLocaleDateString()}
+              </span></>
+            ) : (
+              "Please select your start date"
             )}
-          </div>
+          </p>
         </div>
 
         {/* Traveler Selection */}
@@ -108,6 +67,7 @@ const BookingWidget = ({
             <Users size={18} className="mr-2" />
             Travelers
           </label>
+
           <div className="relative">
             <button
               onClick={() => setShowTravelerPicker(!showTravelerPicker)}
@@ -137,13 +97,8 @@ const BookingWidget = ({
                   </div>
                 </div>
                 <div className="text-sm text-gray-500">
-                  Minimum: {pkg.minTravelers || 1}, Maximum: {pkg.maxTravelers || 10}
+                  Min: {pkg.minTravelers || 1}, Max: {pkg.maxTravelers || 10}
                 </div>
-                {travelerCount >= 6 && pkg.groupDiscount && (
-                  <div className="mt-3 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-                    🎉 {pkg.groupDiscount} applied!
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -177,9 +132,13 @@ const BookingWidget = ({
         {/* Book Now Button */}
         <button
           onClick={onBookNow}
-          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+          disabled={!selectedDate}
+          className={`w-full font-bold py-4 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${selectedDate
+            ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
         >
-          Book Now
+          {selectedDate ? "Book Now" : "Select a date to continue"}
         </button>
 
         {/* Instant Confirmation */}
@@ -200,7 +159,6 @@ const BookingWidget = ({
             <div className="text-sm font-medium bg-gray-100 px-3 py-2 rounded">
               eSewa
             </div>
-
           </div>
         </div>
       </div>

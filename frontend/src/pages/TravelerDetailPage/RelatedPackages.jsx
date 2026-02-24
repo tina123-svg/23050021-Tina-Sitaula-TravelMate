@@ -53,7 +53,7 @@ const RelatedPackages = ({ currentPackageId, relatedPackages = [] }) => {
 
           // Get image URL safely
           const imageUrl = pkg.images?.[0]?.url
-            ? `http://localhost:5000${pkg.images[0].url}`  
+            ? `http://localhost:5000${pkg.images[0].url}`
             : pkg.image || "/assets/images/default-package.jpg";
 
           // Get price safely
@@ -114,7 +114,7 @@ const RelatedPackages = ({ currentPackageId, relatedPackages = [] }) => {
                   </div>
                   <div className="flex items-center">
                     <Calendar size={14} className="mr-1" />
-                    <span>{pkg.duration || 5} days</span>
+                    <span>{pkg.duration || 0} days</span>
                   </div>
                 </div>
 

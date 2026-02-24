@@ -224,7 +224,7 @@ const BookingsPage = () => {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-gray-200">
           <div className="text-2xl font-bold text-gray-800">{stats.totalBookings || 0}</div>
           <div className="text-gray-600">Total Bookings</div>
@@ -247,7 +247,7 @@ const BookingsPage = () => {
           </div>
           <div className="text-gray-600">Total Revenue</div>
         </div>
-      </div>
+      </div> */}
 
       {/* Search and Filter */}
       <div className="mb-8">

@@ -406,12 +406,7 @@ const BookingPage = () => {
                           <div className="font-medium text-gray-700">Selected Date</div>
                           <div className="text-lg">{formatDate(bookingDetails.selectedDate)}</div>
                         </div>
-                        <button
-                          onClick={() => setStep(1)} // Would open date picker
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          Change
-                        </button>
+
                       </div>
                     </div>
 

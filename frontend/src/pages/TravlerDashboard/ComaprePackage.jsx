@@ -20,7 +20,7 @@ const ComparePage = () => {
         .map(pkg => ({
           ...pkg,
           // Ensure rating is properly handled
-          rating: typeof pkg.rating === 'object' ? pkg.rating?.average || 5 : pkg.rating || 5,
+          rating: typeof pkg.rating === 'object' ? pkg.rating?.average || 0 : pkg.rating || 0,
           // Ensure reviews count
           reviews: typeof pkg.rating === 'object' ? pkg.rating?.count || 0 : pkg.reviews || 0,
           // Handle agency 

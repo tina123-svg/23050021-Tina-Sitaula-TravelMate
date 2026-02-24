@@ -32,13 +32,14 @@ const BookingConfirmation = () => {
   const fetchBookingDetails = async () => {
     try {
       setLoading(true);
-      // Fetch booking details from API
-      // This is a placeholder - implement your actual API call
       const response = await paymentService.getBookingDetails(bookingId);
+      console.log('API Response:', response);
+
       if (response.success) {
-        setBooking(response.data.booking);
-        setPackageData(response.data.package);
-        setPaymentStatus(response.data.booking.paymentStatus);
+        const bookingData = response.data;
+        setBooking(bookingData);
+        setPackageData(bookingData.packageId);
+        setPaymentStatus(bookingData.paymentStatus || 'pending');
       }
     } catch (err) {
       setError('Failed to load booking details');

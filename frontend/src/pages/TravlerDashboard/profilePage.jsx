@@ -291,10 +291,10 @@ const TravelerProfilePage = () => {
                   <div className="text-2xl font-bold text-green-600">{stats.upcomingTrips}</div>
                   <div className="text-sm text-gray-600">Upcoming Trips</div>
                 </div>
-                <div className="bg-white p-4 rounded-lg text-center shadow-sm">
+                {/* <div className="bg-white p-4 rounded-lg text-center shadow-sm">
                   <div className="text-2xl font-bold text-purple-600">NPR {stats.totalSpent?.toLocaleString()}</div>
                   <div className="text-sm text-gray-600">Total Spent</div>
-                </div>
+                </div> */}
 
               </div>
             </div>

@@ -86,7 +86,7 @@ exports.initiateEsewaPayment = async (req, res) => {
       product_code: config.merchantCode,
       product_service_charge: serviceChargeStr,
       product_delivery_charge: deliveryChargeStr,
-      success_url: `${process.env.FRONTEND_URL}/booking-confirmation/${booking._id}`,
+      success_url: `${process.env.BACKEND_URL}/api/payment/callback/esewa?bookingId=${booking._id}`,
       failure_url: `${process.env.FRONTEND_URL}/payment/failed?bookingId=${booking._id}`,
       signed_field_names: 'total_amount,transaction_uuid,product_code',
       signature: signature,
@@ -120,35 +120,45 @@ exports.initiateEsewaPayment = async (req, res) => {
   }
 };
 
-// eSewa callback (success/failure)
 exports.esewaCallback = async (req, res) => {
   try {
-    const { data } = req.body;
+    // Get the full bookingId parameter which contains both
+    const fullParam = req.query.bookingId;
 
-    if (!data) {
-      return res.status(400).json({
-        success: false,
-        message: 'No payment data received'
-      });
+    console.log('Full param received:', fullParam);
+
+    if (!fullParam) {
+      console.error('No data received from eSewa');
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failed`);
+    }
+
+    // Split the parameter to get bookingId and data
+    const [bookingId, dataPart] = fullParam.split('?data=');
+
+    console.log('Extracted bookingId:', bookingId);
+    console.log('Extracted data part:', dataPart);
+
+    if (!dataPart) {
+      console.error('No data part found');
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?bookingId=${bookingId}`);
     }
 
     // Decode base64 data
-    const decodedData = JSON.parse(Buffer.from(data, 'base64').toString());
+    let decodedData;
+    try {
+      const buffer = Buffer.from(dataPart, 'base64');
+      decodedData = JSON.parse(buffer.toString());
+      console.log('Decoded eSewa data:', decodedData);
+    } catch (parseError) {
+      console.error('Failed to decode eSewa data:', parseError);
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?bookingId=${bookingId}`);
+    }
 
     const {
       transaction_uuid: transactionId,
       status,
-      total_amount: amount,
-      product_code: merchantCode
+      total_amount: amount
     } = decodedData;
-
-    // Verify merchant code
-    if (merchantCode !== config.merchantCode) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid merchant code'
-      });
-    }
 
     // Find booking by transaction ID
     const booking = await Booking.findOne({
@@ -156,18 +166,8 @@ exports.esewaCallback = async (req, res) => {
     });
 
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found for this transaction'
-      });
-    }
-
-    // Verify amount matches
-    if (parseFloat(amount) !== booking.totalAmount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Amount mismatch'
-      });
+      console.error('Booking not found for transaction:', transactionId);
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?bookingId=${bookingId}`);
     }
 
     // Update booking based on payment status
@@ -178,37 +178,19 @@ exports.esewaCallback = async (req, res) => {
       booking.status = 'confirmed';
 
       await booking.save();
+      console.log(`✅ Payment successful for booking: ${booking.bookingId}`);
 
-
-
-      return res.status(200).json({
-        success: true,
-        message: 'Payment successful',
-        booking: {
-          id: booking._id,
-          bookingId: booking.bookingId,
-          status: booking.status,
-          paymentStatus: booking.paymentStatus
-        }
-      });
+      return res.redirect(`${process.env.FRONTEND_URL}/booking-confirmation/${booking._id}?payment=success`);
     } else {
       booking.paymentStatus = 'failed';
       await booking.save();
 
-      return res.status(400).json({
-        success: false,
-        message: 'Payment failed or cancelled',
-        status: status
-      });
+      return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?bookingId=${booking._id}`);
     }
 
   } catch (error) {
     console.error('eSewa callback error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Callback processing failed',
-      error: error.message
-    });
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?error=server`);
   }
 };
 

@@ -178,19 +178,6 @@ const PackageDetailPage = () => {
   };
 
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: packageDetail?.title || "Package",
-        text: `Check out ${packageDetail?.title} on TravelMate`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
-    }
-  };
-
   // Loading state
   if (loading) {
     return (
@@ -279,12 +266,7 @@ const PackageDetailPage = () => {
             >
               <Heart size={20} fill={isInWishlist ? "currentColor" : "none"} />
             </button>
-            <button
-              onClick={handleShare}
-              className="p-3 rounded-full backdrop-blur-sm bg-white/20 text-white hover:bg-white/30"
-            >
-              <Share2 size={20} />
-            </button>
+
           </div>
         </section>
 
@@ -299,7 +281,7 @@ const PackageDetailPage = () => {
                     {packageDetail.category}
                   </span>
                   <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                    ⭐ {packageDetail.rating || 5} ({packageDetail.reviews || 0} reviews)
+                    ⭐ {packageDetail.rating || 0} ({packageDetail.reviews || 0} reviews)
                   </span>
                   {packageDetail.discount && (
                     <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold">
@@ -412,7 +394,7 @@ const PackageDetailPage = () => {
 
                 {activeTab === "reviews" && (
                   <ReviewsSection
-                    rating={packageDetail.rating || 5}
+                    rating={packageDetail.rating || 0}
                     reviewCount={packageDetail.reviews || 0}
                     packageId={id}
                   />
@@ -447,7 +429,10 @@ const PackageDetailPage = () => {
                     price: packageDetail.price.toLocaleString(),
                     maxTravelers: packageDetail.groupSize?.max || 12,
                     minTravelers: packageDetail.groupSize?.min || 2,
-                    availableDates: packageDetail.availableDates || generateMockDates()
+                    availableDates:
+                      packageDetail.availableDates && packageDetail.availableDates.length > 0
+                        ? packageDetail.availableDates
+                        : generateMockDates()
                   }}
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}

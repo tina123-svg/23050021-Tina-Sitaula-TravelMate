@@ -171,29 +171,29 @@ const ReviewPage = () => {
     );
   };
 
-  const toggleFeatured = async (reviewId) => {
-    try {
-      const response = await agencyReviewService.toggleFeatured(reviewId);
-      if (response.success) {
-        setReviews(prev => prev.map(review =>
-          review.id === reviewId
-            ? { ...review, featured: response.featured }
-            : review
-        ));
-        fetchAgencyStats();
+  // const toggleFeatured = async (reviewId) => {
+  //   try {
+  //     const response = await agencyReviewService.toggleFeatured(reviewId);
+  //     if (response.success) {
+  //       setReviews(prev => prev.map(review =>
+  //         review.id === reviewId
+  //           ? { ...review, featured: response.featured }
+  //           : review
+  //       ));
+  //       fetchAgencyStats();
 
-        // Show toast
-        showToast(
-          response.featured
-            ? 'Review marked as featured'
-            : 'Review removed from featured'
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling featured:', error);
-      showToast('Failed to update featured status', 'error');
-    }
-  };
+  //       // Show toast
+  //       showToast(
+  //         response.featured
+  //           ? 'Review marked as featured'
+  //           : 'Review removed from featured'
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error('Error toggling featured:', error);
+  //     showToast('Failed to update featured status', 'error');
+  //   }
+  // };
 
   if (loading) {
     return (
@@ -228,10 +228,10 @@ const ReviewPage = () => {
             <div className="text-2xl font-bold text-green-600">{stats.respondedReviews}</div>
             <div className="text-gray-600">Responded Reviews</div>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          {/* <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="text-2xl font-bold text-blue-600">{stats.featuredReviews}</div>
             <div className="text-gray-600">Featured Reviews</div>
-          </div>
+          </div> */}
         </div>
 
         {/* Search and Filter */}
@@ -322,7 +322,7 @@ const ReviewPage = () => {
                       <ThumbsUp size={16} className="mr-1" />
                       <span className="text-sm">Helpful ({review.helpful || 0})</span>
                     </div>
-                    <button
+                    {/* <button
                       onClick={() => toggleFeatured(review.id)}
                       className={`px-3 py-1 text-xs font-medium rounded-lg ${review.featured
                         ? 'bg-blue-100 text-blue-700'
@@ -330,7 +330,7 @@ const ReviewPage = () => {
                         }`}
                     >
                       {review.featured ? 'Featured' : 'Mark Featured'}
-                    </button>
+                    </button> */}
                   </div>
                 </div>
 

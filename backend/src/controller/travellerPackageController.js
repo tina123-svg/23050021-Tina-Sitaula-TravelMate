@@ -248,8 +248,8 @@ exports.getPackageDetails = async (req, res) => {
     ];
 
     // FIX: Extract rating properly - ALWAYS return a number
-    const ratingValue = package.rating?.average || 4.5;
-    const reviewCount = package.rating?.count || Math.floor(Math.random() * 200) + 50;
+    const ratingValue = package.rating?.average || 0;
+    const reviewCount = package.rating?.count || 0;
 
     // Format the response
     const formattedPackage = {

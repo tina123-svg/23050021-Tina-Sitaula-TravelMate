@@ -48,14 +48,14 @@ const WishlistPage = () => {
   };
 
   const handleRemove = async (packageId) => {
-    if (window.confirm('Remove from wishlist?')) {
-      try {
-        await wishlistService.removeFromWishlist(packageId);
-        fetchWishlist(); // Refresh list
-      } catch (err) {
-        console.error('Error removing from wishlist:', err);
-        alert('Failed to remove from wishlist');
-      }
+    try {
+      await wishlistService.removeFromWishlist(packageId);
+
+      setWishlist(prev => prev.filter(item => item.id !== packageId));
+
+    } catch (err) {
+      console.error('Error removing from wishlist:', err);
+      alert('Failed to remove from wishlist');
     }
   };
 
@@ -181,7 +181,7 @@ const WishlistPage = () => {
                       e.target.src = "/assets/images/default-package.jpg";
                     }}
                   />
-                  {/* Remove button */}
+                  {/* Remove button */}``
                   <button
                     onClick={() => handleRemove(item.id)}
                     className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white"

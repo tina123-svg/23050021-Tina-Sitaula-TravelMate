@@ -4,6 +4,8 @@ import AgencyLayout from '../../layout/Agencylayout';
 import PackageForm from './PackageForm';
 import { Plus, Search, Filter, Edit, Trash2, Star, Package as PackageIcon } from 'lucide-react';
 import { packageService } from '../../services/packageService';
+import ConfirmModal from '../../components/ConfirmModal';
+
 
 const PackagesPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -12,6 +14,8 @@ const PackagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [packages, setPackages] = useState([]);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [packageToDelete, setPackageToDelete] = useState(null);
 
   // Fetch packages on mount
   useEffect(() => {
@@ -71,20 +75,32 @@ const PackagesPage = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this package?')) {
-      try {
-        const response = await packageService.deletePackage(id);
-        if (response.success) {
-          setMessage({ type: 'success', text: 'Package deleted successfully!' });
-          fetchPackages(); // Refresh list
-        }
-      } catch (error) {
-        setMessage({
-          type: 'error',
-          text: error.response?.data?.message || 'Failed to delete package'
-        });
+  // Replace the old handleDelete function with these:
+
+  // Open delete confirmation modal
+  const openDeleteModal = (pkg) => {
+    setPackageToDelete(pkg);
+    setShowDeleteModal(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!packageToDelete) return;
+
+    try {
+      const response = await packageService.deletePackage(packageToDelete._id);
+      if (response.success) {
+        setMessage({ type: 'success', text: 'Package deleted successfully!' });
+        fetchPackages(); // Refresh list
+        setShowDeleteModal(false);
+        setPackageToDelete(null);
       }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to delete package'
+      });
+      setShowDeleteModal(false);
     }
   };
 
@@ -286,8 +302,8 @@ const PackagesPage = () => {
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(pkg._id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        onClick={() => openDeleteModal(pkg)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -332,6 +348,21 @@ const PackagesPage = () => {
           onSave={handleSavePackage}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setPackageToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Package?"
+        message={`Are you sure you want to delete "${packageToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Yes, Delete Package"
+        cancelText="Cancel"
+        confirmVariant="danger"
+      />
     </AgencyLayout>
   );
 };

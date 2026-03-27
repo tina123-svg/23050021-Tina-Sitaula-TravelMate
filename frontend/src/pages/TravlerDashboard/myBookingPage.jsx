@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
+import ConfirmModal from '../../components/ConfirmModal';
+import Toast from '../../components/Toast';
+import { Info } from 'lucide-react';
 import {
   Calendar, Users, MapPin, DollarSign, Clock,
   CheckCircle, XCircle, AlertCircle, Eye,
@@ -14,10 +17,13 @@ const MyBookingsPage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');  
+  const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
   // Fetch bookings on mount
   useEffect(() => {
@@ -45,6 +51,48 @@ const MyBookingsPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Show toast notification
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
+
+  // Handle cancel confirmation
+  const handleCancelConfirm = async () => {
+    if (!bookingToCancel) return;
+
+    try {
+      const response = await travelerBookingService.cancelBooking(bookingToCancel, 'Cancelled by traveler');
+
+      if (response.success) {
+        showToast('Booking cancelled successfully!', 'success');
+        fetchBookings(); // Refresh list
+        setShowCancelModal(false);
+        setBookingToCancel(null);
+      }
+    } catch (error) {
+      let errorMessage = 'Failed to cancel booking';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      if (errorMessage.includes('7 days')) {
+        showToast('Cannot cancel within 7 days of departure', 'error');
+      } else {
+        showToast(errorMessage, 'error');
+      }
+      setShowCancelModal(false);
+    }
+  };
+
+  // Open cancel modal
+  const openCancelModal = (bookingId) => {
+    setBookingToCancel(bookingId);
+    setShowCancelModal(true);
   };
 
   // Filter bookings based on status and search
@@ -105,19 +153,62 @@ const MyBookingsPage = () => {
   };
 
   // Cancel booking
-  const cancelBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+  // const cancelBooking = async (bookingId) => {
+  //   try {
+  //     const response = await travelerBookingService.cancelBooking(bookingId, 'Cancelled by traveler');
 
-    try {
-      const response = await travelerBookingService.cancelBooking(bookingId, 'Cancelled by traveler');
-      if (response.success) {
-        alert('Booking cancelled successfully!');
-        fetchBookings(); // Refresh list
-      }
-    } catch (error) {
-      alert(error.response?.data?.message || 'Failed to cancel booking');
-    }
+  //     if (response.success) {
+  //       alert('✅ Booking Cancelled\n\nYour booking has been cancelled successfully.');
+  //       fetchBookings(); // Refresh list
+  //     }
+  //   } catch (error) {
+  //     // Get the actual error message from backend
+  //     let errorMessage = 'Failed to cancel booking';
+
+  //     // Check different places where error message might be
+  //     if (error.response?.data?.message) {
+  //       errorMessage = error.response.data.message;
+  //     } else if (error.response?.data?.error) {
+  //       errorMessage = error.response.data.error;
+  //     } else if (error.message) {
+  //       errorMessage = error.message;
+  //     }
+
+  //     console.log('Cancel error:', errorMessage); // Debug
+
+  //     // Show user-friendly message based on error content
+  //     if (errorMessage.includes('7 days') || errorMessage.includes('within 7 days')) {
+  //       alert(
+  //         '⚠️ Cannot Cancel\n\n' +
+  //         'This booking cannot be cancelled as it is within 7 days of departure.\n\n' +
+  //         'If you need assistance, please contact our support team.'
+  //       );
+  //     } else if (errorMessage.includes('already cancelled')) {
+  //       alert(
+  //         '⚠️ Already Cancelled\n\n' +
+  //         'This booking has already been cancelled.'
+  //       );
+  //     } else if (error.response?.status === 401) {
+  //       alert(
+  //         '🔒 Session Expired\n\n' +
+  //         'Please login again to cancel this booking.'
+  //       );
+  //     } else {
+  //       alert(
+  //         '❌ Cancellation Failed\n\n' +
+  //         errorMessage
+  //       );
+  //     }
+  //   }
+  // };
+
+  const canCancel = (startDate) => {
+    const today = new Date();
+    const tripDate = new Date(startDate);
+    const daysDiff = Math.ceil((tripDate - today) / (1000 * 60 * 60 * 24));
+    return daysDiff > 7;
   };
+
 
   // Stats
   const stats = {
@@ -333,13 +424,33 @@ const MyBookingsPage = () => {
                       </button>
 
                       {booking.status === 'pending' && (
-                        <button
-                          onClick={() => cancelBooking(booking._id)}
-                          className="flex items-center px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
-                        >
-                          <XCircle size={16} className="mr-2" />
-                          Cancel Booking
-                        </button>
+                        <div className="relative group">
+                          {!canCancel(booking.startDate) && (
+                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                              Cannot cancel within 7 days of departure
+                            </div>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (!canCancel(booking.startDate)) {
+                                showToast('Cannot cancel within 7 days of departure', 'error');
+                                return;
+                              }
+                              openCancelModal(booking._id);
+                            }}
+                            className={`flex items-center px-4 py-2 rounded-lg transition-colors ${canCancel(booking.startDate)
+                              ? 'border border-red-300 text-red-600 hover:bg-red-50'
+                              : 'border border-gray-300 text-gray-400 cursor-not-allowed bg-gray-50'
+                              }`}
+                            disabled={!canCancel(booking.startDate)}
+                          >
+                            <XCircle size={16} className="mr-2" />
+                            Cancel Booking
+                            {!canCancel(booking.startDate) && (
+                              <Info size={14} className="ml-2 text-gray-400" />
+                            )}
+                          </button>
+                        </div>
                       )}
 
                       {/* <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 ml-auto">
@@ -512,7 +623,29 @@ const MyBookingsPage = () => {
           </div>
         </div>
       )}
+      {/* Cancel Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setBookingToCancel(null);
+        }}
+        onConfirm={handleCancelConfirm}
+        title="Cancel Booking?"
+        message="Are you sure you want to cancel this booking? This action cannot be undone."
+        confirmText="Yes, Cancel Booking"
+        cancelText="Keep Booking"
+        confirmVariant="danger"
+      />
 
+      {/* Toast Notification */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ show: false, message: '', type: 'success' })}
+        />
+      )}
       <Footer />
     </div>
   );

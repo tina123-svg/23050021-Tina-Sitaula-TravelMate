@@ -4,6 +4,30 @@ import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  // Social media links
+  const socialLinks = [
+    {
+      Icon: Facebook,
+      url: "https://facebook.com",
+      label: "Facebook"
+    },
+    {
+      Icon: Instagram,
+      url: "https://instagram.com",
+      label: "Instagram"
+    },
+    {
+      Icon: Twitter,
+      url: "https://twitter.com",
+      label: "Twitter"
+    },
+    {
+      Icon: Linkedin,
+      url: "https://linkedin.com",
+      label: "LinkedIn"
+    }
+  ];
+
   return (
     <footer className="bg-neutral-900 text-gray-400">
       <div className="max-w-7xl mx-auto px-6 py-14">
@@ -58,13 +82,16 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-white text-lg mb-5">Follow Us</h3>
             <div className="flex gap-4">
-              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, idx) => (
+              {socialLinks.map(({ Icon, url, label }, idx) => (
                 <a
                   key={idx}
-                  href="#"
-                  className="w-11 h-11 bg-neutral-800 rounded-full flex items-center justify-center hover:bg-orange-500 transition"
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-11 h-11 bg-neutral-800 rounded-full flex items-center justify-center hover:bg-orange-500 transition group"
                 >
-                  <Icon size={20} className="text-white" />
+                  <Icon size={20} className="text-white group-hover:scale-110 transition-transform" />
                 </a>
               ))}
             </div>

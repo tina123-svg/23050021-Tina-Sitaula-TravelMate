@@ -2,6 +2,7 @@
 const Booking = require("../models/Booking");
 const Package = require("../models/Package");
 const mongoose = require("mongoose");
+const { createAndEmitNotification } = require("../utils/notificationHelper");
 
 // Helper: Generate booking stats
 const getBookingStats = async (agencyId) => {
@@ -195,14 +196,31 @@ exports.updateBookingStatus = async (req, res) => {
       await booking.save();
     }
 
+    // 🔔 Notify traveler about status change
+    const io = req.app.get("io");
+
+    const messages = {
+      confirmed: `Great news! Your booking (${booking.bookingId}) has been confirmed by the agency. Get ready for your trip!`,
+      cancelled: `Your booking (${booking.bookingId}) has been cancelled by the agency.${booking.paymentStatus === "refunded" ? " A refund has been initiated." : ""}`,
+      pending: `Your booking (${booking.bookingId}) status has been updated to pending.`,
+    };
+
+    await createAndEmitNotification(io, {
+      recipient: booking.travelerId,
+      type: "BOOKING_STATUS_UPDATED",
+      title: status === "confirmed" ? "Booking Confirmed! 🎉" : status === "cancelled" ? "Booking Cancelled" : "Booking Updated",
+      message: messages[status],
+      data: { bookingId: booking._id },
+    });
+
     return res.status(200).json({
       success: true,
       message: `Booking status updated to ${status}`,
       data: {
         bookingId: booking.bookingId,
         status: booking.status,
-        paymentStatus: booking.paymentStatus
-      }
+        paymentStatus: booking.paymentStatus,
+      },
     });
 
   } catch (error) {

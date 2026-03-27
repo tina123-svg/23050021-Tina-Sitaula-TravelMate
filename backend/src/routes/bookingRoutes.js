@@ -14,11 +14,11 @@ const {
 router.use(protect);
 router.use(restrictTo("agency"));
 router.get("/bookings", getAgencyBookings);
-
+router.get("/bookings/stats", getBookingStats);
+router.get("/bookings/export", exportBookings);
 router.get("/bookings/:id", getBooking);
 router.patch("/bookings/:id/status", updateBookingStatus);
 router.patch("/bookings/:id/payment", updatePaymentStatus);
-router.get("/bookings/stats", getBookingStats);
-router.get("/bookings/export", exportBookings);
+
 
 module.exports = router;

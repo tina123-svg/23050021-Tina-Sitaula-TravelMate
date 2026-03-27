@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const Booking = require('../models/Booking');
+const { createAndEmitNotification } = require("../utils/notificationHelper");
 
 // eSewa Configuration
 const ESEWA_CONFIG = {
@@ -171,6 +172,17 @@ exports.esewaCallback = async (req, res) => {
     }
 
     // Update booking based on payment status
+    // if (status === 'COMPLETE') {
+    //   booking.paymentStatus = 'paid';
+    //   booking.paymentDetails.paidAt = new Date();
+    //   booking.paymentDetails.method = 'online';
+    //   booking.status = 'confirmed';
+
+    //   await booking.save();
+    //   console.log(`✅ Payment successful for booking: ${booking.bookingId}`);
+
+    //   return res.redirect(`${process.env.FRONTEND_URL}/booking-confirmation/${booking._id}?payment=success`);
+
     if (status === 'COMPLETE') {
       booking.paymentStatus = 'paid';
       booking.paymentDetails.paidAt = new Date();
@@ -180,7 +192,29 @@ exports.esewaCallback = async (req, res) => {
       await booking.save();
       console.log(`✅ Payment successful for booking: ${booking.bookingId}`);
 
+      //   Notify traveler
+      const io = req.app.get("io");
+
+      await createAndEmitNotification(io, {
+        recipient: booking.travelerId,
+        type: "PAYMENT_RECEIVED",
+        title: "Payment Successful! 💳",
+        message: `Your payment of Rs. ${booking.totalAmount} for booking (${booking.bookingId}) was successful. Your trip is confirmed!`,
+        data: { bookingId: booking._id },
+      });
+
+      //   Notify agency
+      await createAndEmitNotification(io, {
+        recipient: booking.agencyId,
+        type: "PAYMENT_RECEIVED",
+        title: "Payment Received! 💳",
+        message: `Payment of Rs. ${booking.totalAmount} received for booking (${booking.bookingId}). Booking is now confirmed.`,
+        data: { bookingId: booking._id },
+      });
+
       return res.redirect(`${process.env.FRONTEND_URL}/booking-confirmation/${booking._id}?payment=success`);
+
+
     } else {
       booking.paymentStatus = 'failed';
       await booking.save();

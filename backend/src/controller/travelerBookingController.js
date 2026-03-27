@@ -1,8 +1,9 @@
 const Booking = require('../models/Booking');
 const Package = require('../models/Package');
 const User = require('../models/User');
+const { createAndEmitNotification } = require("../utils/notificationHelper");
 
-// Generate unique booking ID (same as before)
+// Generate unique booking ID 
 const generateBookingId = async () => {
   const year = new Date().getFullYear();
   const count = await Booking.countDocuments({
@@ -155,8 +156,30 @@ exports.createBooking = async (req, res) => {
     });
 
     // 6. Save booking
+    // 6. Save booking
     await booking.save();
     console.log("Booking saved successfully:", booking.bookingId);
+
+    // 🔔 NOTIFICATIONS
+    const io = req.app.get("io");
+
+    // Notify the traveler
+    await createAndEmitNotification(io, {
+      recipient: req.user.id,
+      type: "BOOKING_CONFIRMED",
+      title: "Booking Confirmed!",
+      message: `Your booking for "${package.title}" on ${selectedDate.toDateString()} has been received. Please complete your payment.`,
+      data: { bookingId: booking._id, packageId },
+    });
+
+    // Notify the agency
+    await createAndEmitNotification(io, {
+      recipient: agencyId,
+      type: "BOOKING_CONFIRMED",
+      title: "New Booking Received!",
+      message: `A new booking for "${package.title}" has been made by ${travelerInfo.fullName || req.user.name} for ${travelers} traveler(s).`,
+      data: { bookingId: booking._id, packageId },
+    });
 
     // 7. Update package seats (reserve them)
     // Find the date in the array and update seats
@@ -364,10 +387,29 @@ exports.cancelBooking = async (req, res) => {
       }
     );
 
+    // 🔔 Notify agency about cancellation
+    const io = req.app.get("io");
+
+    await createAndEmitNotification(io, {
+      recipient: booking.agencyId,
+      type: "BOOKING_CANCELLED",
+      title: "Booking Cancelled",
+      message: `A traveler has cancelled booking (${booking.bookingId}). ${booking.travelers} seat(s) have been freed up.${booking.paymentStatus === "refunded" ? " Refund has been initiated." : ""}`,
+      data: { bookingId: booking._id },
+    });
+
+    await createAndEmitNotification(io, {
+      recipient: booking.travelerId,
+      type: "BOOKING_CANCELLED",
+      title: "Cancellation Confirmed",
+      message: `Your booking (${booking.bookingId}) has been successfully cancelled.${booking.paymentStatus === "refunded" ? " Your refund is being processed." : ""}`,
+      data: { bookingId: booking._id },
+    });
+
     res.json({
       success: true,
       data: booking,
-      message: 'Booking cancelled successfully'
+      message: "Booking cancelled successfully",
     });
 
   } catch (error) {

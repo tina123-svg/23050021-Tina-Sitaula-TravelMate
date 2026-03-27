@@ -10,7 +10,7 @@ const {
 } = require('../controller/travelerBookingController');
 const { protect } = require('../middleware/authMiddleware');
 
- router.use(protect);
+router.use(protect);
 
 // Traveler booking routes
 router.post('/', createBooking);

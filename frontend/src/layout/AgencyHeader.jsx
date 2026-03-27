@@ -1,31 +1,28 @@
-// components/agency/AgencyHeader.jsx
 import React from "react";
-import { Link, useNavigate } from "react-router-dom"; // add useNavigate
-import { Bell, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
+import NotificationBell from "../components/NotificationBell";
 
 const AgencyHeader = () => {
   const navigate = useNavigate();
 
   const agencyData = {
     name: "Himalayan Adventures",
-    verified: true
+    verified: true,
   };
 
   const handleLogout = () => {
-    // 1. Clear auth data
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('agencyData');
-
-    navigate('/');
-
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("agencyData");
+    navigate("/");
   };
 
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo & Agency Name */}
+
           <div className="flex items-center">
             <Link to="/agency-dashboard" className="flex items-center mr-8">
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
@@ -51,10 +48,10 @@ const AgencyHeader = () => {
             </div>
           </div>
 
-          {/* Right Actions */}
           <div className="flex items-center space-x-4">
 
-            {/* Logout Button*/}
+            <NotificationBell />
+
             <button
               onClick={handleLogout}
               className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition"

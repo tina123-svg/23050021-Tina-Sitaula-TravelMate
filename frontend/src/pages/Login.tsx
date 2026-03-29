@@ -3,6 +3,7 @@ import { Mail, Lock, Facebook, Apple, Chrome } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import loginimg from "../assets/img.png";
 
 const API_URL = "http://localhost:5000/api/auth";
 
@@ -70,7 +71,7 @@ const handleLogin = async (e: React.FormEvent) => {
         {/* LEFT IMAGE */}
         <div
           className="relative w-full lg:w-1/2 h-96 lg:h-auto bg-cover bg-center"
-          style={{ backgroundImage: "url('/src/assets/img.png')" }}
+          style={{ backgroundImage: `url(${loginimg})` }}
         >
           <div className="absolute inset-0 bg-black/30"></div>
           <div className="relative z-10 h-full flex flex-col justify-center items-start p-10 lg:p-16 text-white">

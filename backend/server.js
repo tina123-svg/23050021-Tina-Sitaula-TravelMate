@@ -16,6 +16,7 @@ const io = new Server(server, {
 });
 
 app.set("io", io);
+app.set("trust proxy", 1);
 
 // Socket.io connection
 io.on("connection", (socket) => {
@@ -34,6 +35,8 @@ io.on("connection", (socket) => {
 
 app.use(cors());
 app.use(express.json());
+
+
 
 // Routes
 app.use("/api/auth", require("./src/routes/authRoutes"));

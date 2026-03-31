@@ -83,7 +83,7 @@ const ProfilePage = () => {
       formData.append('licenseNumber', profile.licenseNumber);
       formData.append('agencyDescription', profile.agencyDescription);
 
-       if (profile.avatarFile) {
+      if (profile.avatarFile) {
         formData.append('avatar', profile.avatarFile);
       }
 
@@ -92,7 +92,7 @@ const ProfilePage = () => {
       if (response.success) {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setIsEditing(false);
-        fetchProfile(); 
+        fetchProfile();
       }
     } catch (error) {
       setMessage({
@@ -206,7 +206,7 @@ const ProfilePage = () => {
                       profile.avatar
                         ? (profile.avatar.startsWith('blob:')
                           ? profile.avatar // Local preview
-                          : `http://localhost:5000${profile.avatar}`) // Server path
+                          : `https://travelmatess.onrender.com${profile.avatar}`) // Server path
                         : "/assets/images/default-avatar.jpg"
                     }
                     alt={profile.agencyName}

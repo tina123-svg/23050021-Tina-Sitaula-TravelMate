@@ -15,16 +15,16 @@ const AgencyCard = ({ agency }) => {
 
     // If it's a path from backend
     if (imagePath.startsWith('/uploads/')) {
-      return `http://localhost:5000${imagePath}`;
+      return `https://travelmatess.onrender.com${imagePath}`;
     }
 
     // If it's just a filename
     if (imagePath.startsWith('uploads/')) {
-      return `http://localhost:5000/${imagePath}`;
+      return `https://travelmatess.onrender.com/${imagePath}`;
     }
 
     // If it's just a relative path
-    return `http://localhost:5000/uploads/${imagePath}`;
+    return `https://travelmatess.onrender.com/uploads/${imagePath}`;
   };
 
   // Check if agency has avatar

@@ -5,7 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "https://travelmatess.onrender.com/api/auth";
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1);

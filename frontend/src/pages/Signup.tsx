@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:5000/api/auth"; 
+const API_URL = "https://travelmatess.onrender.com/api/auth"; 
 
 export default function SignUpPage() {
   const [role, setRole] = useState<"traveler" | "agency">("traveler");

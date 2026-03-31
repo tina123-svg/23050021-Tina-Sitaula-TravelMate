@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://travelmatess.onrender.com/api';
 
 // Create axios instance
 const api = axios.create({
@@ -11,16 +11,16 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-     const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     // Handle FormData vs JSON
     if (config.data instanceof FormData) {
-       config.headers['Content-Type'] = 'multipart/form-data';
+      config.headers['Content-Type'] = 'multipart/form-data';
     } else if (config.data && typeof config.data === 'object') {
-       config.headers['Content-Type'] = 'application/json';
+      config.headers['Content-Type'] = 'application/json';
     }
 
     return config;
@@ -33,13 +33,13 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-     return response;
+    return response;
   },
   (error) => {
     // Handle errors
     console.error('API Error:', error.response?.status, error.message);
 
-     if (error.response?.status === 401) {
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       // Use window.location for hard redirect

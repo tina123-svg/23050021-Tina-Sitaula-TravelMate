@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { Bell } from "lucide-react";
 
-const SOCKET_URL = "http://localhost:5000";
+const SOCKET_URL = "https://travelmatess.onrender.com";
 
 let socket;
 
@@ -36,7 +36,7 @@ const NotificationBell = () => {
     });
 
     return () => socket.disconnect();
-  }, [userId]); 
+  }, [userId]);
   // Socket setup
   useEffect(() => {
     if (!userId) return;
@@ -71,7 +71,7 @@ const NotificationBell = () => {
   const handleMarkAllRead = async () => {
     try {
       await axios.patch(
-        "http://localhost:5000/api/notifications/read-all",
+        "https://travelmatess.onrender.com/api/notifications/read-all",
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,7 +85,7 @@ const NotificationBell = () => {
   const handleMarkOneRead = async (id) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/notifications/${id}/read`,
+        `https://travelmatess.onrender.com/api/notifications/${id}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -100,7 +100,7 @@ const NotificationBell = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/notifications/${id}`, {
+      await axios.delete(`https://travelmatess.onrender.com/api/notifications/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const deleted = notifications.find((n) => n._id === id);

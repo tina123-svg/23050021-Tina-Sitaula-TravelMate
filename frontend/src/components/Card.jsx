@@ -19,7 +19,7 @@ export default function PackageCard({
   const getImageUrl = (url) => {
     if (!url) return "/assets/images/default-package.jpg";
     if (url.startsWith('http')) return url;
-    return `http://localhost:5000${url}`;
+    return `https://travelmatess.onrender.com${url}`;
   };
 
   const displayImage = getImageUrl(

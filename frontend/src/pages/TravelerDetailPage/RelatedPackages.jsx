@@ -53,7 +53,7 @@ const RelatedPackages = ({ currentPackageId, relatedPackages = [] }) => {
 
           // Get image URL safely
           const imageUrl = pkg.images?.[0]?.url
-            ? `http://localhost:5000${pkg.images[0].url}`
+            ? `https://travelmatess.onrender.com${pkg.images[0].url}`
             : pkg.image || "/assets/images/default-package.jpg";
 
           // Get price safely

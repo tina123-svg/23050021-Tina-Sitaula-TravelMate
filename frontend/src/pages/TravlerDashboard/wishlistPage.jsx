@@ -174,7 +174,7 @@ const WishlistPage = () => {
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={`http://localhost:5000${item.image}`}
+                    src={`https://travelmatess.onrender.com${item.image}`}
                     alt={item.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {

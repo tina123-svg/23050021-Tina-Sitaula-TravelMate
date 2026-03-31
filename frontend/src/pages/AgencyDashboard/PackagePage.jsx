@@ -224,7 +224,7 @@ const PackagesPage = () => {
                       <div className="w-12 h-12 rounded-lg mr-4 overflow-hidden bg-gray-200 flex items-center justify-center">
                         {pkg.images?.[0]?.url ? (
                           <img
-                            src={`http://localhost:5000${pkg.images[0].url}`}
+                            src={`https://travelmatess.onrender.com${pkg.images[0].url}`}
                             alt={pkg.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {

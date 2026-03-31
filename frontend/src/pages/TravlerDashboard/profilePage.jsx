@@ -230,7 +230,7 @@ const TravelerProfilePage = () => {
                 <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg overflow-hidden">
                   {profile.profilePicture ? (
                     <img
-                      src={`http://localhost:5000${profile.profilePicture}`}
+                      src={`https://travelmatess.onrender.com${profile.profilePicture}`}
                       alt={profile.fullName}
                       className="w-full h-full object-cover"
                       onError={(e) => {

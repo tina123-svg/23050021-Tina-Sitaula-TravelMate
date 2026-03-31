@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import loginimg from "../assets/img.png";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "https://travelmatess.onrender.com/api/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

@@ -8,7 +8,7 @@ const ImageGallery = ({ images = [] }) => {
   const getImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `http://localhost:5000${url}`;
+    return `https://travelmatess.onrender.com${url}`;
   };
 
   // Extract URLs - prefer cover image first, then others

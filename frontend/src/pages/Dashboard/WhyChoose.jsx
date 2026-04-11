@@ -4,36 +4,48 @@ const features = [
   {
     icon: Shield,
     title: "Verified Local Agencies",
-    description: "All partners are vetted and trusted local travel experts with years of experience",
+    description: "All partners are rigorously vetted travel experts with years of experience",
+    color: "from-blue-500 to-blue-400"
   },
   {
     icon: Zap,
     title: "Best Price Guarantee",
-    description: "Get the most competitive rates with transparent pricing and no hidden fees",
+    description: "Get the most competitive rates with transparent pricing and absolutely no hidden fees",
+    color: "from-amber-500 to-orange-400"
   },
   {
     icon: CheckCircle,
     title: "Secure Payments",
-    description: "Safe transactions with multiple payment options including eSewa and online banking",
+    description: "Safe, encrypted transactions with multiple payment options for your peace of mind",
+    color: "from-emerald-500 to-teal-400"
   },
   {
     icon: Headphones,
-    title: "24/7 Support",
-    description: "Round-the-clock customer support to help you before, during, and after your trip",
+    title: "24/7 Expert Support",
+    description: "Round-the-clock dedicated customer support to help you before, during, and after your trip",
+    color: "from-purple-500 to-pink-400"
   },
 ];
 
 export function WhyChooseTravelMate() {
   return (
-    <section id="why-us" className="py-16 md:py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="why-us" className="py-24 bg-white relative overflow-hidden">
+
+      {/* Background accents */}
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] rounded-full bg-blue-50/50 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] rounded-full bg-orange-50/50 blur-[100px] pointer-events-none" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-            Why Choose Travel Mate
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <h2 className="text-sm font-semibold tracking-widest text-blue-600 uppercase mb-3">
+            Why TravelMate?
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Experience the difference with Nepal's most trusted travel booking platform
+          <h3 className="text-4xl md:text-5xl font-heading font-extrabold text-gray-900 mb-6 tracking-tight">
+            Experience the difference with Nepal's premier booking platform
+          </h3>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            We don't just book trips; we craft unforgettable experiences. Trusted by thousands of adventurers worldwide.
           </p>
         </div>
 
@@ -44,15 +56,15 @@ export function WhyChooseTravelMate() {
             return (
               <div
                 key={index}
-                className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow"
+                className="bg-white rounded-2xl p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transform hover:-translate-y-2 transition-all duration-300 group"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                  <Icon className="text-primary" size={32} />
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} mb-6 shadow-md transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                  <Icon className="text-white" size={26} />
                 </div>
-                <h3 className="text-lg font-bold text-primary mb-3">
+                <h4 className="text-xl font-heading font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                   {feature.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
               </div>

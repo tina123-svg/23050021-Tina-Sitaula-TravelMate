@@ -1,5 +1,5 @@
 // components/agency/PackageForm.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Plus, Trash2, Upload, Calendar, Users, MapPin } from 'lucide-react';
 import { packageService } from '../../services/packageService';
 
@@ -273,21 +273,21 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
+        <div className="sticky top-0 bg-gradient-to-r from-teal-700 to-emerald-600 p-6 flex justify-between items-center z-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-white">
               {initialData ? 'Edit Package' : 'Create New Package'}
             </h2>
-            <p className="text-gray-600">Fill in all required details for your travel package</p>
+            <p className="text-white/70 text-sm mt-0.5">Fill in all required details for your travel package</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-white/20 rounded-xl text-white/80 hover:text-white transition-all"
           >
-            <X size={24} />
+            <X size={22} />
           </button>
         </div>
 
@@ -305,7 +305,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   placeholder="e.g., Everest Base Camp Trek - 14 Days"
                   required
                 />
@@ -321,7 +321,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   value={formData.description}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   placeholder="Brief description that appears on package cards"
                   required
                 />
@@ -337,7 +337,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                   value={formData.overview}
                   onChange={handleChange}
                   rows="4"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   placeholder="Detailed description of the adventure"
                   required
                 />
@@ -356,7 +356,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                       name="price"
                       value={formData.price}
                       onChange={handleChange}
-                      className="w-full p-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full p-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       placeholder="25000"
                       required
                       min="0"
@@ -373,7 +373,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     name="duration"
                     value={formData.duration}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="14"
                     required
                     min="1"
@@ -394,7 +394,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                       name="destination"
                       value={formData.destination}
                       onChange={handleChange}
-                      className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       placeholder="Everest Region, Nepal"
                       required
                     />
@@ -409,7 +409,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   >
                     {categories.map(cat => (
                       <option key={cat.value} value={cat.value}>
@@ -430,7 +430,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                     <label
                       key={diff.value}
                       className={`flex items-center justify-center p-3 border rounded-lg cursor-pointer ${formData.difficulty === diff.value
-                        ? 'border-green-500 bg-green-50 text-green-700'
+                        ? 'border-teal-500 bg-teal-50 text-teal-700'
                         : 'border-gray-300 hover:border-gray-400'
                         }`}
                     >
@@ -764,7 +764,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
                 <button
                   type="button"
                   onClick={() => addArrayField('highlights')}
-                  className="mt-2 flex items-center text-green-600 hover:text-green-800"
+                  className="mt-2 flex items-center text-teal-600 hover:text-teal-800"
                 >
                   <Plus size={20} className="mr-2" />
                   Add Highlight
@@ -868,7 +868,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
               <button
                 type="button"
                 onClick={addItineraryDay}
-                className="mt-4 px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 flex items-center"
+                className="mt-4 px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-medium rounded-xl hover:from-teal-700 hover:to-emerald-700 flex items-center shadow-sm transition-all"
               >
                 <Plus size={20} className="mr-2" />
                 Add Day {currentItineraryDay.day} to Itinerary
@@ -902,7 +902,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
               <button
                 type="button"
                 onClick={() => addArrayField('included')}
-                className="mt-2 flex items-center text-green-600 hover:text-green-800"
+                className="mt-2 flex items-center text-teal-600 hover:text-teal-800"
               >
                 <Plus size={20} className="mr-2" />
                 Add Included Item
@@ -933,7 +933,7 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
               <button
                 type="button"
                 onClick={() => addArrayField('excluded')}
-                className="mt-2 flex items-center text-green-600 hover:text-green-800"
+                className="mt-2 flex items-center text-teal-600 hover:text-teal-800"
               >
                 <Plus size={20} className="mr-2" />
                 Add Excluded Item
@@ -942,17 +942,17 @@ const PackageForm = ({ onClose, onSave, initialData = null }) => {
           </div>
 
           {/* Form Actions */}
-          <div className="mt-12 pt-8 border-t flex justify-end space-x-4">
+          <div className="mt-10 pt-6 border-t flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50"
+              className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+              className="px-8 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold rounded-xl hover:from-teal-700 hover:to-emerald-700 shadow-sm transition-all"
             >
               {initialData ? 'Update Package' : 'Create Package'}
             </button>

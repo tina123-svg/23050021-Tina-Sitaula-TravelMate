@@ -4,54 +4,32 @@ import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
-  // Social media links
-  const socialLinks = [
-    {
-      Icon: Facebook,
-      url: "https://facebook.com",
-      label: "Facebook"
-    },
-    {
-      Icon: Instagram,
-      url: "https://instagram.com",
-      label: "Instagram"
-    },
-    {
-      Icon: Twitter,
-      url: "https://twitter.com",
-      label: "Twitter"
-    },
-    {
-      Icon: Linkedin,
-      url: "https://linkedin.com",
-      label: "LinkedIn"
-    }
-  ];
-
   return (
-    <footer className="bg-neutral-900 text-gray-400">
-      <div className="max-w-7xl mx-auto px-6 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+    <footer className="bg-gray-950 text-gray-400 border-t border-gray-900">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
-          <div>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-xl">TM</span>
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center gap-3 mb-6 group cursor-pointer">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-400 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-all">
+                <span className="text-white font-heading font-bold text-2xl">T</span>
               </div>
-              <span className="font-bold text-2xl text-white">Travel Mate</span>
+              <span className="font-heading font-bold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                TravelMate
+              </span>
             </div>
-            <p className="leading-relaxed">
-              Your trusted partner for unforgettable Nepal travel experiences — from Himalayas to heritage.
+            <p className="leading-relaxed text-gray-400/90 text-sm">
+              Your trusted partner for unforgettable travel experiences — from majestic mountains to hidden beaches. Explore the world with confidence.
             </p>
           </div>
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-white text-lg mb-5">Company</h3>
-            <ul className="space-y-3">
+            <h3 className="font-heading font-semibold text-white text-lg mb-6">Company</h3>
+            <ul className="space-y-4">
               {["About Us", "Contact", "Blog", "Careers"].map((item) => (
                 <li key={item}>
-                  <a href="#" className="hover:text-orange-400 transition">
+                  <a href="#" className="hover:text-blue-400 hover:translate-x-1 inline-block transition-transform duration-200 text-sm">
                     {item}
                   </a>
                 </li>
@@ -61,8 +39,8 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-white text-lg mb-5">Legal</h3>
-            <ul className="space-y-3">
+            <h3 className="font-heading font-semibold text-white text-lg mb-6">Legal</h3>
+            <ul className="space-y-4">
               {[
                 "Terms & Conditions",
                 "Privacy Policy",
@@ -70,7 +48,7 @@ export default function Footer() {
                 "FAQ",
               ].map((item) => (
                 <li key={item}>
-                  <a href="#" className="hover:text-orange-400 transition">
+                  <a href="#" className="hover:text-blue-400 hover:translate-x-1 inline-block transition-transform duration-200 text-sm">
                     {item}
                   </a>
                 </li>
@@ -80,18 +58,15 @@ export default function Footer() {
 
           {/* Social */}
           <div>
-            <h3 className="font-semibold text-white text-lg mb-5">Follow Us</h3>
+            <h3 className="font-heading font-semibold text-white text-lg mb-6">Follow Us</h3>
             <div className="flex gap-4">
-              {socialLinks.map(({ Icon, url, label }, idx) => (
+              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, idx) => (
                 <a
                   key={idx}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="w-11 h-11 bg-neutral-800 rounded-full flex items-center justify-center hover:bg-orange-500 transition group"
+                  href="#"
+                  className="w-10 h-10 bg-gray-900 border border-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-1 transition-all duration-300 shadow-md group"
                 >
-                  <Icon size={20} className="text-white group-hover:scale-110 transition-transform" />
+                  <Icon size={18} className="text-gray-400 group-hover:text-white transition-colors" />
                 </a>
               ))}
             </div>
@@ -99,16 +74,16 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-neutral-800 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
+        <div className="border-t border-gray-800/60 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <p>
-            © {currentYear} Travel Mate. All rights reserved.
+            © {currentYear} TravelMate. All rights reserved.
           </p>
-          <div className="flex gap-6 mt-4 md:mt-0">
+          <div className="flex gap-8 mt-6 md:mt-0">
             {["Privacy", "Terms", "Sitemap"].map((item) => (
               <a
                 key={item}
                 href="#"
-                className="hover:text-orange-400 transition"
+                className="hover:text-white transition-colors"
               >
                 {item}
               </a>

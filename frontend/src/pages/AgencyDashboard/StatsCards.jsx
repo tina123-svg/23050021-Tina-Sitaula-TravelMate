@@ -2,13 +2,13 @@ import React from 'react';
 
 const StatsCard = ({ title, value, color, change, suffix = '', description }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-sm transition-shadow">
-      <div className="flex justify-between items-start mb-4">
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-3">
         <div>
-          <p className="text-gray-600 text-sm font-medium">{title}</p>
+          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide">{title}</p>
           <div className="flex items-end mt-2">
-            <div className="text-3xl font-bold text-gray-800">{value}</div>
-            {suffix && <span className="text-lg text-gray-600 ml-1">{suffix}</span>}
+            <div className="text-3xl font-bold text-gray-900">{value}</div>
+            {suffix && <span className="text-lg text-gray-500 ml-1">{suffix}</span>}
           </div>
         </div>
         {/* <div className={`${color} p-3 rounded-lg`}>

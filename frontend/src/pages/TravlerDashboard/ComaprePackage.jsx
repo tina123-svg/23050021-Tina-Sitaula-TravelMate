@@ -190,10 +190,13 @@ const ComparePage = () => {
     return (
       <div className="min-h-screen">
         <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <Loader className="animate-spin h-8 w-8 mx-auto text-blue-600 mb-4" />
-            <p className="text-gray-600">Loading comparison...</p>
+        <main className="container mx-auto px-4 pt-24 pb-8">
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin" />
+              <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+            </div>
+            <p className="text-gray-500 text-sm font-medium">Loading comparison...</p>
           </div>
         </main>
         <Footer />
@@ -205,16 +208,18 @@ const ComparePage = () => {
     return (
       <div className="min-h-screen">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 pt-24 pb-8">
           <div className="text-center py-16">
-            <Package className="mx-auto text-gray-400 mb-4" size={48} />
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">No packages to compare</h2>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <Package className="text-blue-500" size={36} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">No packages to compare</h2>
+            <p className="text-gray-500 mb-7 max-w-md mx-auto text-sm">
               Select packages to compare from the packages page. You can compare up to 3 packages at once.
             </p>
             <button
               onClick={() => navigate('/package')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg"
+              className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-medium px-6 py-3 rounded-xl shadow-sm transition-all"
             >
               Browse Packages
             </button>
@@ -229,21 +234,21 @@ const ComparePage = () => {
     <div className="min-h-screen">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-24 pb-8">
         {/* Page Header */}
-        <div className="mb-10">
+        <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
                 Compare Packages ({packagesToCompare.length}/3)
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-500 text-sm">
                 Side-by-side comparison to help you choose the best package
               </p>
             </div>
             <button
               onClick={() => navigate('/package')}
-              className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+              className="text-blue-600 hover:text-blue-800 font-medium flex items-center text-sm"
             >
               ← Back to Packages
             </button>
@@ -251,7 +256,7 @@ const ComparePage = () => {
         </div>
 
         {/* Comparison Table */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           {/* Package Headers */}
           <div className={`grid border-b ${packagesToCompare.length === 3 ? 'grid-cols-4' : 'grid-cols-5'}`}>
             <div className="p-6 border-r bg-gray-50">
@@ -295,7 +300,7 @@ const ComparePage = () => {
                 </div>
                 <button
                   onClick={() => navigate(`/package/${pkg.id}`)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-2.5 rounded-xl font-medium transition shadow-sm"
                 >
                   View Details
                 </button>
@@ -362,7 +367,7 @@ const ComparePage = () => {
               <div key={`choice-${pkg.id}`} className="p-4 border-r">
                 <button
                   onClick={() => navigate(`/package/${pkg.id}`)}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-lg font-bold transition-all duration-300 hover:shadow-lg"
+                  className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
                 >
                   Select This Package
                 </button>
@@ -375,8 +380,8 @@ const ComparePage = () => {
         </div>
 
         {/* Comparison Tips */}
-        <div className="mt-12 bg-blue-50 rounded-xl p-6">
-          <h3 className="font-bold text-lg text-gray-800 mb-3">💡 Comparison Tips</h3>
+        <div className="mt-10 bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
+          <h3 className="font-bold text-base text-gray-800 mb-3">💡 Comparison Tips</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Price vs Value</h4>

@@ -198,8 +198,12 @@ const ReviewPage = () => {
   if (loading) {
     return (
       <AgencyLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader className="animate-spin h-8 w-8 text-green-600" />
+        <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-emerald-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Loading reviews...</p>
         </div>
       </AgencyLayout>
     );
@@ -209,42 +213,41 @@ const ReviewPage = () => {
     <>
       <AgencyLayout>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Customer Reviews</h1>
-          <p className="text-gray-600">Manage customer feedback for your packages</p>
+        <div className="mb-7">
+          <h1 className="text-2xl font-bold text-gray-900">Customer Reviews</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Manage customer feedback for your packages</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="text-2xl font-bold text-gray-800">{stats.totalReviews}</div>
-            <div className="text-gray-600">Total Reviews</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="text-2xl font-bold text-yellow-600">{stats.averageRating}</div>
-            <div className="text-gray-600">Average Rating</div>
-          </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="text-2xl font-bold text-green-600">{stats.respondedReviews}</div>
-            <div className="text-gray-600">Responded Reviews</div>
-          </div>
-          {/* <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="text-2xl font-bold text-blue-600">{stats.featuredReviews}</div>
-            <div className="text-gray-600">Featured Reviews</div>
-          </div> */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7">
+          {[
+            { value: stats.totalReviews, label: 'Total Reviews', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50' },
+            { value: stats.averageRating, label: 'Average Rating', color: 'from-amber-400 to-orange-500', bg: 'bg-amber-50' },
+            { value: stats.respondedReviews, label: 'Responded Reviews', color: 'from-emerald-500 to-teal-500', bg: 'bg-emerald-50' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
+                <Star size={18} className="text-white" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Search and Filter */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="mb-7">
+          <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
               <input
                 type="text"
                 placeholder="Search by customer name, package, or review text..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
 
@@ -252,7 +255,7 @@ const ReviewPage = () => {
               <select
                 value={ratingFilter}
                 onChange={(e) => setRatingFilter(e.target.value)}
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
                 {ratingOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -263,9 +266,9 @@ const ReviewPage = () => {
 
               <button
                 onClick={fetchAgencyReviews}
-                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
               >
-                <Filter size={20} className="mr-2" />
+                <Filter size={18} className="mr-2" />
                 Refresh
               </button>
             </div>
@@ -273,36 +276,36 @@ const ReviewPage = () => {
         </div>
 
         {/* Reviews List */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {filteredReviews.map(review => (
-            <div key={review.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div key={review.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               {/* Review Header */}
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-5 border-b border-gray-100">
                 <div className="flex justify-between items-start">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <User size={24} className="text-green-600" />
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center shrink-0">
+                      <User size={20} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800">{review.customerName}</h3>
-                      <div className="flex items-center text-gray-600 text-sm mt-1">
-                        <Package size={14} className="mr-2" />
+                      <h3 className="font-bold text-gray-900">{review.customerName}</h3>
+                      <div className="flex items-center text-gray-500 text-sm mt-0.5">
+                        <Package size={13} className="mr-1.5" />
                         {review.package}
                       </div>
                       {review.verifiedPurchase && (
-                        <span className="inline-block mt-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
                           ✓ Verified Purchase
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     {review.featured && (
                       <span className="px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full">
                         ✨ Featured
                       </span>
                     )}
-                    <span className="text-gray-500 text-sm">
+                    <span className="text-gray-400 text-sm">
                       {new Date(review.date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
@@ -314,63 +317,50 @@ const ReviewPage = () => {
               </div>
 
               {/* Review Content */}
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
                   {renderStars(review.rating)}
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center text-gray-600">
-                      <ThumbsUp size={16} className="mr-1" />
-                      <span className="text-sm">Helpful ({review.helpful || 0})</span>
-                    </div>
-                    {/* <button
-                      onClick={() => toggleFeatured(review.id)}
-                      className={`px-3 py-1 text-xs font-medium rounded-lg ${review.featured
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                    >
-                      {review.featured ? 'Featured' : 'Mark Featured'}
-                    </button> */}
+                  <div className="flex items-center text-gray-500">
+                    <ThumbsUp size={14} className="mr-1" />
+                    <span className="text-sm">Helpful ({review.helpful || 0})</span>
                   </div>
                 </div>
 
-                <p className="text-gray-700 mb-6">{review.comment}</p>
+                <p className="text-gray-700 text-sm leading-relaxed mb-5">{review.comment}</p>
 
                 {/* Agency Response */}
                 {review.agencyResponse ? (
-                  <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                  <div className="mt-4 p-4 bg-teal-50 rounded-xl border border-teal-100">
                     <div className="flex justify-between items-start mb-2">
-                      <div className="font-bold text-green-800 flex items-center">
-                        <MessageSquare size={16} className="mr-2" />
+                      <div className="font-semibold text-teal-800 text-sm flex items-center">
+                        <MessageSquare size={14} className="mr-1.5" />
                         Your Response
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openReplyModal(review, true)}
-                          className="text-sm text-green-600 hover:text-green-800"
-                        >
-                          Edit
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => openReplyModal(review, true)}
+                        className="text-xs text-teal-600 hover:text-teal-800 font-medium"
+                      >
+                        Edit
+                      </button>
                     </div>
-                    <p className="text-green-700">{review.agencyResponse.text}</p>
-                    <div className="text-green-600 text-xs mt-2">
+                    <p className="text-teal-700 text-sm">{review.agencyResponse.text}</p>
+                    <div className="text-teal-500 text-xs mt-2">
                       {new Date(review.agencyResponse.date).toLocaleDateString()}
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => openReplyModal(review, false)}
-                    className="mt-4 px-4 py-2 border border-green-300 text-green-600 hover:bg-green-50 rounded-lg flex items-center"
+                    className="mt-3 px-4 py-2 border border-teal-200 text-teal-600 hover:bg-teal-50 rounded-xl text-sm flex items-center gap-2 transition-all"
                   >
-                    <MessageSquare size={16} className="mr-2" />
+                    <MessageSquare size={15} />
                     Respond to Review
                   </button>
                 )}
               </div>
 
               {/* Review Actions */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
+              <div className="px-5 py-3 bg-gray-50/60 border-t border-gray-100 flex justify-end gap-2">
                 <button
                   onClick={() => openMessageModal(review)}
                   className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
@@ -390,14 +380,14 @@ const ReviewPage = () => {
 
         {/* Empty State */}
         {filteredReviews.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Star size={40} className="text-gray-400" />
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star size={36} className="text-teal-400" />
             </div>
-            <h3 className="text-xl font-bold text-gray-700 mb-2">
+            <h3 className="text-lg font-bold text-gray-700 mb-2">
               {searchTerm || ratingFilter !== 'all' ? 'No matching reviews found' : 'No reviews yet'}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-500 text-sm">
               {searchTerm || ratingFilter !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Customer reviews will appear here once they review your packages'}
@@ -407,11 +397,11 @@ const ReviewPage = () => {
 
         {/* Reply Modal */}
         {showReplyModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">
+                  <h3 className="text-lg font-bold text-gray-900">
                     {isEditing ? 'Edit Response' : 'Reply to Review'}
                   </h3>
                   <button
@@ -420,9 +410,9 @@ const ReviewPage = () => {
                       setReplyText('');
                       setSelectedReview(null);
                     }}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 p-1 transition-all"
                   >
-                    <X size={24} />
+                    <X size={22} />
                   </button>
                 </div>
 
@@ -439,7 +429,7 @@ const ReviewPage = () => {
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Type your response here..."
-                  className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+                  className="w-full h-36 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent mb-4"
                   autoFocus
                 />
 
@@ -450,15 +440,15 @@ const ReviewPage = () => {
                       setReplyText('');
                       setSelectedReview(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-sm transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmitReply}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+                    className="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-xl hover:from-teal-700 hover:to-emerald-700 flex items-center gap-2 text-sm shadow-sm transition-all"
                   >
-                    <Send size={18} className="mr-2" />
+                    <Send size={15} />
                     {isEditing ? 'Update Response' : 'Post Response'}
                   </button>
                 </div>
@@ -469,11 +459,11 @@ const ReviewPage = () => {
 
         {/* Message Customer Modal */}
         {showMessageModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold text-gray-800">
+                  <h3 className="text-lg font-bold text-gray-900">
                     Message {selectedReview?.customerName}
                   </h3>
                   <button
@@ -482,13 +472,13 @@ const ReviewPage = () => {
                       setMessageText('');
                       setSelectedReview(null);
                     }}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 p-1 transition-all"
                   >
-                    <X size={24} />
+                    <X size={22} />
                   </button>
                 </div>
 
-                <div className="mb-4 text-sm text-gray-600">
+                <div className="mb-4 text-sm text-gray-500 bg-gray-50 p-3 rounded-xl">
                   This message will be sent to {selectedReview?.customerName} regarding their review of {selectedReview?.package}.
                 </div>
 
@@ -496,7 +486,7 @@ const ReviewPage = () => {
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Type your message here..."
-                  className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
+                  className="w-full h-36 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent mb-4"
                   autoFocus
                 />
 
@@ -507,15 +497,15 @@ const ReviewPage = () => {
                       setMessageText('');
                       setSelectedReview(null);
                     }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-sm transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSendMessage}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 flex items-center gap-2 text-sm shadow-sm transition-all"
                   >
-                    <Send size={18} className="mr-2" />
+                    <Send size={15} />
                     Send Message
                   </button>
                 </div>
@@ -527,10 +517,10 @@ const ReviewPage = () => {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border ${toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-          <div className="flex items-center">
-            <CheckCircle className="mr-3 text-green-500" size={20} />
-            <span className="font-medium">{toast.message}</span>
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-2xl shadow-xl border text-sm font-medium ${toast.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="text-emerald-500" size={18} />
+            <span>{toast.message}</span>
           </div>
         </div>
       )}

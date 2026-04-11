@@ -1,40 +1,45 @@
 import React from "react";
+import { ArrowRight } from "lucide-react";
 
 export default function CTA() {
   return (
-    <section className="relative py-20 md:py-28 bg-gradient-to-r from-blue-900 to-blue-1000 overflow-hidden">
-      {/* Decorative circles */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/4" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/4" />
+    <section className="relative py-24 md:py-32 bg-gray-900 overflow-hidden">
+      {/* Dynamic Gradient Background map */}
+      <div className="absolute inset-0 z-0 opacity-80"
+        style={{
+          background: "radial-gradient(circle at top right, #2563eb, transparent 50%), radial-gradient(circle at bottom left, #0ea5e9, transparent 50%)"
+        }}
+      />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-8">
-          Ready for Your Next Adventure?
+      {/* Decorative circles */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-x-1/3 translate-y-1/4" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/4" />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+        <h2 className="text-5xl md:text-6xl font-heading font-extrabold text-white mb-6 tracking-tight drop-shadow-lg">
+          Ready for Your Next <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-blue-200">Adventure?</span>
         </h2>
-        <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto">
-          Join thousands of travelers discovering Nepal's most incredible destinations through Travel Mate
+        <p className="text-xl md:text-2xl text-blue-100/90 mb-12 leading-relaxed max-w-3xl mx-auto font-light">
+          Join thousands of travelers discovering the world's most incredible destinations through TravelMate. Your journey starts here.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
           <a
             href="/signup"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg px-10 py-5 rounded-full shadow-2xl transition transform hover:scale-105"
+            className="group flex items-center justify-center gap-2 bg-white text-blue-700 font-semibold text-lg px-8 py-4 rounded-full shadow-xl hover:shadow-2xl hover:bg-gray-50 transform hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto"
           >
-            Sign Up Free
+            Start Exploring
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </a>
 
           <a
-            href="/packages"
-            className="border-2 border-white text-white hover:bg-white/10 font-bold text-lg px-10 py-5 rounded-full transition backdrop-blur-sm"
+            href="/package"
+            className="group flex items-center justify-center gap-2 bg-transparent border-2 border-white/70 text-white hover:bg-white/10 hover:border-white font-medium text-lg px-8 py-4 rounded-full transition-all duration-300 backdrop-blur-sm w-full sm:w-auto"
           >
-            Explore Packages
+            View Packages
           </a>
-
-          
         </div>
-        
       </div>
-      
     </section>
   );
 }

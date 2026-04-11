@@ -89,29 +89,7 @@ const BookingsPage = () => {
     }
   };
 
-  const handleExport = async () => {
-    try {
-      const response = await bookingService.exportBookings({
-        status: statusFilter !== 'all' ? statusFilter : undefined
-      });
 
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `bookings_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      setMessage({ type: 'success', text: 'Bookings exported successfully!' });
-    } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error.response?.data?.message || 'Failed to export bookings'
-      });
-    }
-  };
 
   const statusOptions = [
     { value: 'all', label: 'All Status' },
@@ -184,8 +162,12 @@ const BookingsPage = () => {
   if (loading) {
     return (
       <AgencyLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-gray-600">Loading bookings...</div>
+        <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-emerald-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Loading bookings...</p>
         </div>
       </AgencyLayout>
     );
@@ -194,10 +176,10 @@ const BookingsPage = () => {
   return (
     <AgencyLayout>
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-7">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Bookings</h1>
-          <p className="text-gray-600">Manage all customer bookings</p>
+          <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Manage all customer bookings</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
           {/* <button
@@ -260,7 +242,7 @@ const BookingsPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchBookings()}
-              className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full p-3 pl-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
 
@@ -271,7 +253,7 @@ const BookingsPage = () => {
                 setStatusFilter(e.target.value);
                 fetchBookings();
               }}
-              className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             >
               {statusOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -281,7 +263,7 @@ const BookingsPage = () => {
             </select>
             <button
               onClick={fetchBookings}
-              className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-xl hover:from-teal-700 hover:to-emerald-700 shadow-sm transition-all"
             >
               Search
             </button>
@@ -290,19 +272,19 @@ const BookingsPage = () => {
       </div>
 
       {/* Bookings Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600">
               <tr>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Booking ID</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Package</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Customer</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Travelers</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Amount</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Payment</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Booking ID</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Package</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Customer</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Travelers</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Amount</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Status</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Payment</th>
+                <th className="py-3 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -336,7 +318,7 @@ const BookingsPage = () => {
                       <select
                         value={booking.status}
                         onChange={(e) => handleStatusChange(booking.id || booking._id, e.target.value)}
-                        className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-teal-500"
                       >
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirm</option>
@@ -367,7 +349,7 @@ const BookingsPage = () => {
                         <Eye size={18} />
                       </button>
                       <button
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                        className="p-2 text-teal-600 hover:bg-teal-50 rounded-xl"
                         title="Message Customer"
                       >
                         <MessageSquare size={18} />

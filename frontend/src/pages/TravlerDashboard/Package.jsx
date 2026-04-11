@@ -6,7 +6,7 @@ import FilterSidebar from "../../components/FilterSidebar";
 import PackageCardEnhanced from "./PackageCard";
 import SortDropdown from "../../components/SortDropdown";
 import ActiveFilters from "../../components/ActiveFilters";
-import { Grid, Map, Filter, Search, Loader, X } from "lucide-react";
+import { Grid, Map, Filter, Search, X, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
 import { travelerService } from "../../services/travelerService";
 
 export default function PackagesPage() {
@@ -235,9 +235,9 @@ export default function PackagesPage() {
         <button
           key={i}
           onClick={() => setCurrentPage(i)}
-          className={`px-4 py-2 border rounded-lg ${currentPage === i
-            ? 'bg-blue-600 text-white border-blue-600'
-            : 'border-gray-300 hover:bg-gray-50'
+          className={`px-4 py-2 border rounded-xl text-sm font-medium transition-all ${currentPage === i
+            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
             }`}
         >
           {i}
@@ -253,9 +253,12 @@ export default function PackagesPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Loader className="animate-spin h-12 w-12 mx-auto text-blue-600 mb-4" />
-            <p className="text-gray-600">Loading packages...</p>
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin" />
+              <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+            </div>
+            <p className="text-gray-500 text-sm font-medium">Loading packages...</p>
           </div>
         </main>
         <Footer />
@@ -268,38 +271,36 @@ export default function PackagesPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Search Bar */}
-        <div className="bg-gradient-to-r from-blue-50 to-gray-50 border-b">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex flex-col md:flex-row gap-4">
+        {/* Hero Search Section */}
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundImage: `url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1400')`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/70 to-teal-800/60" />
+          <div className="relative container mx-auto px-6 pt-28 pb-12">
+            <h1 className="text-3xl font-bold text-white mb-1 drop-shadow">Discover Nepal's Best Travel Packages</h1>
+            <p className="text-white/70 text-sm mb-5">{totalPackages} package{totalPackages !== 1 ? 's' : ''} available — find your perfect adventure</p>
+            <div className="flex flex-col md:flex-row gap-3 max-w-2xl">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="text"
                     placeholder="Search packages, destinations, categories..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full p-4 pl-12 rounded-xl border shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3.5 pl-11 rounded-xl border-0 shadow-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                   />
                 </div>
               </div>
               <button
                 onClick={handleSearch}
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 font-medium"
+                className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-7 py-3.5 rounded-xl hover:from-blue-600 hover:to-teal-600 font-medium shadow-lg transition-all"
               >
                 Search
               </button>
-            </div>
-            <div className="mt-3 text-sm text-gray-600">
-              {searchQuery ? (
-                <span>
-                  Found {totalPackages} package{totalPackages !== 1 ? 's' : ''} for "{searchQuery}"
-                </span>
-              ) : (
-                <span>Showing {totalPackages} packages</span>
-              )}
             </div>
           </div>
         </div>
@@ -307,7 +308,7 @@ export default function PackagesPage() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex">
             {/* Filter Sidebar */}
-            <aside className={`hidden lg:block w-64 pr-6 ${showFilters ? '' : 'hidden'}`}>
+            <aside className={`hidden lg:block w-80 pr-6 ${showFilters ? '' : 'hidden'}`}>
               <FilterSidebar
                 filters={filters}
                 setFilters={setFilters}
@@ -320,43 +321,41 @@ export default function PackagesPage() {
             {/* Main Content */}
             <div className="flex-1">
               {/* Top Bar */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">
-                    Discover Nepal's Best Travel Packages
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    {totalPackages} package{totalPackages !== 1 ? 's' : ''} found
+                  <p className="text-gray-500 text-sm font-medium">
+                    <span className="text-gray-800 font-semibold">{totalPackages}</span> package{totalPackages !== 1 ? 's' : ''} found
                     {filters.categories.length > 0 && ` in ${filters.categories.join(', ')}`}
                     {searchQuery && ` for "${searchQuery}"`}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4 mt-4 md:mt-0">
+                <div className="flex items-center gap-3 mt-2 md:mt-0">
                   {/* Mobile Filter Toggle */}
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="lg:hidden flex items-center gap-2 bg-white border px-4 py-2 rounded-lg"
+                    className="lg:hidden flex items-center gap-2 bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all shadow-sm"
                   >
-                    <Filter size={20} />
+                    <Filter size={16} className="text-gray-500" />
                     Filters
                   </button>
 
                   {/* View Toggle */}
-                  <div className="flex bg-gray-100 rounded-lg p-1">
+                  <div className="flex bg-gray-100 rounded-xl p-1">
                     <button
                       onClick={() => setViewMode("grid")}
-                      className={`px-4 py-2 rounded-md ${viewMode === "grid" ? "bg-white shadow" : ""}`}
+                      className={`px-3 py-2 rounded-lg transition-all ${viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                      title="Grid view"
                     >
-                      <Grid size={20} />
+                      <Grid size={18} />
                     </button>
                     <button
                       onClick={() => setViewMode("map")}
                       disabled
-                      className={`px-4 py-2 rounded-md ${viewMode === "map" ? "bg-white shadow" : ""} opacity-50 cursor-not-allowed`}
+                      className={`px-3 py-2 rounded-lg ${viewMode === "map" ? "bg-white shadow-sm" : "text-gray-400"} opacity-50 cursor-not-allowed`}
                       title="Map view coming soon"
                     >
-                      <Map size={20} />
+                      <Map size={18} />
                     </button>
                   </div>
 
@@ -391,17 +390,17 @@ export default function PackagesPage() {
                 <>
                   {/* Compare Info */}
                   {compareList.length > 0 && (
-                    <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="bg-blue-100 p-2 rounded-lg">
-                            <Search className="text-blue-600" size={20} />
+                          <div className="bg-blue-100 p-2 rounded-xl">
+                            <Search className="text-blue-600" size={18} />
                           </div>
                           <div>
-                            <span className="font-medium text-blue-700">
+                            <span className="font-semibold text-blue-700 text-sm">
                               {compareList.length} package{compareList.length > 1 ? 's' : ''} selected for comparison
                             </span>
-                            <p className="text-sm text-blue-600 mt-1">
+                            <p className="text-xs text-blue-500 mt-0.5">
                               Select up to 3 packages to compare features and prices
                             </p>
                           </div>
@@ -409,8 +408,8 @@ export default function PackagesPage() {
                         <button
                           onClick={handleCompareClick}
                           disabled={compareList.length < 2}
-                          className={`px-4 py-2 rounded-lg font-medium ${compareList.length >= 2
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                          className={`px-5 py-2 rounded-xl font-semibold text-sm transition-all ${compareList.length >= 2
+                            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
                             : "bg-gray-100 text-gray-400 cursor-not-allowed"
                             }`}
                         >
@@ -442,9 +441,9 @@ export default function PackagesPage() {
                             <button
                               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                               disabled={currentPage === 1}
-                              className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
+                              className="px-4 py-2 border border-gray-200 rounded-xl disabled:opacity-40 hover:bg-gray-50 flex items-center gap-1.5 text-sm font-medium transition-all"
                             >
-                              <X size={16} className="rotate-90" />
+                              <ChevronLeft size={16} />
                               Previous
                             </button>
 
@@ -453,19 +452,21 @@ export default function PackagesPage() {
                             <button
                               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                               disabled={currentPage === totalPages}
-                              className="px-4 py-2 border rounded-lg disabled:opacity-50 hover:bg-gray-50 flex items-center gap-2"
+                              className="px-4 py-2 border border-gray-200 rounded-xl disabled:opacity-40 hover:bg-gray-50 flex items-center gap-1.5 text-sm font-medium transition-all"
                             >
                               Next
-                              <X size={16} className="-rotate-90" />
+                              <ChevronRight size={16} />
                             </button>
                           </div>
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="text-center py-16">
-                      <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                      <h3 className="text-2xl font-bold text-gray-700 mb-3">
+                    <div className="text-center py-20">
+                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                        <Search className="text-gray-400" size={32} />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-700 mb-2">
                         No packages found
                       </h3>
                       <p className="text-gray-500 mb-6 max-w-md mx-auto">
@@ -475,7 +476,7 @@ export default function PackagesPage() {
                       </p>
                       <button
                         onClick={clearFilters}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-7 py-3 rounded-xl transition-all"
                       >
                         Clear Search & Filters
                       </button>

@@ -94,8 +94,8 @@ const PackageCardEnhanced = ({ pkg, isComparing, onCompareToggle, onViewDetails 
   return (
     <div
       onClick={handleCardClick}
-      className={`relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border cursor-pointer group
-        ${isComparing ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"}`}
+      className={`relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border cursor-pointer group
+        ${isComparing ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-100 hover:border-gray-200"}`}
     >
       {/* Compare & Favorite Buttons */}
       <div className="absolute top-3 right-3 z-20 flex gap-2">
@@ -212,7 +212,7 @@ const PackageCardEnhanced = ({ pkg, isComparing, onCompareToggle, onViewDetails 
               e.stopPropagation();
               navigate(`/package/${pkg._id || pkg.id}`);
             }}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-medium py-2.5 rounded-xl transition shadow-sm"
           >
             View Details
           </button>
@@ -220,7 +220,7 @@ const PackageCardEnhanced = ({ pkg, isComparing, onCompareToggle, onViewDetails 
           <button
             onClick={handleFavoriteClick}
             disabled={isLoading}
-            className={`px-4 py-2.5 rounded-lg border font-medium transition flex items-center justify-center min-w-[50px]
+            className={`px-4 py-2.5 rounded-xl border font-medium transition flex items-center justify-center min-w-[50px]
               ${isFavorite
                 ? "border-red-500 text-red-500 bg-red-50 hover:bg-red-100"
                 : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"

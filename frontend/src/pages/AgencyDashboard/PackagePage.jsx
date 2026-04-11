@@ -5,8 +5,6 @@ import PackageForm from './PackageForm';
 import { Plus, Search, Filter, Edit, Trash2, Star, Package as PackageIcon } from 'lucide-react';
 import { packageService } from '../../services/packageService';
 import ConfirmModal from '../../components/ConfirmModal';
-
-
 const PackagesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingPackage, setEditingPackage] = useState(null);
@@ -75,15 +73,11 @@ const PackagesPage = () => {
     setShowForm(true);
   };
 
-  // Replace the old handleDelete function with these:
-
-  // Open delete confirmation modal
   const openDeleteModal = (pkg) => {
     setPackageToDelete(pkg);
     setShowDeleteModal(true);
   };
 
-  // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     if (!packageToDelete) return;
 
@@ -91,7 +85,7 @@ const PackagesPage = () => {
       const response = await packageService.deletePackage(packageToDelete._id);
       if (response.success) {
         setMessage({ type: 'success', text: 'Package deleted successfully!' });
-        fetchPackages(); // Refresh list
+        fetchPackages();
         setShowDeleteModal(false);
         setPackageToDelete(null);
       }
@@ -141,8 +135,12 @@ const PackagesPage = () => {
   if (loading) {
     return (
       <AgencyLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-gray-600">Loading packages...</div>
+        <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-teal-100 border-t-teal-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-emerald-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Loading packages...</p>
         </div>
       </AgencyLayout>
     );
@@ -151,69 +149,64 @@ const PackagesPage = () => {
   return (
     <AgencyLayout>
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-7">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Packages</h1>
-          <p className="text-gray-600">Create and manage your travel packages</p>
+          <h1 className="text-2xl font-bold text-gray-900">Travel Packages</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Create and manage your travel packages</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="mt-4 md:mt-0 px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 flex items-center"
+          className="mt-4 md:mt-0 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-teal-700 hover:to-emerald-700 flex items-center gap-2 shadow-sm transition-all"
         >
-          <Plus size={20} className="mr-2" />
+          <Plus size={18} />
           Add New Package
         </button>
       </div>
 
       {/* Message Display */}
       {message.text && (
-        <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-          {message.text}
-          <button
-            onClick={() => setMessage({ type: '', text: '' })}
-            className="float-right text-sm"
-          >
-            ×
-          </button>
+        <div className={`mb-5 p-4 rounded-2xl flex items-center justify-between text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+          <span>{message.text}</span>
+          <button onClick={() => setMessage({ type: '', text: '' })} className="font-bold opacity-60 hover:opacity-100">✕</button>
         </div>
       )}
 
       {/* Search and Filter */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+            <Search className="absolute left-3.5 top-3 text-gray-400" size={18} />
             <input
               type="text"
               placeholder="Search packages by title, destination, or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full py-2.5 pl-10 pr-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm outline-none"
             />
           </div>
           <button
             onClick={fetchPackages}
-            className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-600 transition-all"
           >
-            <Filter size={20} className="mr-2" />
+            <Filter size={16} />
             Refresh
           </button>
         </div>
       </div>
 
       {/* Packages Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-teal-600 to-emerald-600">
               <tr>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Package</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Destination</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Price</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Duration</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Difficulty</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th className="py-3 px-6 text-left text-sm font-semibold text-gray-700">Actions</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Package</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Destination</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Price</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Duration</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Difficulty</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Status</th>
+                <th className="py-3.5 px-6 text-left text-xs font-semibold text-white/90 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -297,13 +290,13 @@ const PackagesPage = () => {
 
                       <button
                         onClick={() => handleEdit(pkg)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                        className="p-2 text-teal-600 hover:bg-teal-50 rounded-xl"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => openDeleteModal(pkg)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-xl"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -330,7 +323,7 @@ const PackagesPage = () => {
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+            className="px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold rounded-xl hover:from-teal-700 hover:to-emerald-700 shadow-sm transition-all"
           >
             Create Your First Package
           </button>
@@ -348,8 +341,6 @@ const PackagesPage = () => {
           onSave={handleSavePackage}
         />
       )}
-
-      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={showDeleteModal}
         onClose={() => {

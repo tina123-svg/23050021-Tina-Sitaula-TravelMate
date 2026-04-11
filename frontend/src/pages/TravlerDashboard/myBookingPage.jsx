@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../layout/Header';
 import Footer from '../../layout/Footer';
-import ConfirmModal from '../../components/ConfirmModal';
-import Toast from '../../components/Toast';
-import { Info } from 'lucide-react';
 import {
   Calendar, Users, MapPin, DollarSign, Clock,
   CheckCircle, XCircle, AlertCircle, Eye,
@@ -12,6 +9,9 @@ import {
   Package as PackageIcon
 } from 'lucide-react';
 import travelerBookingService from '../../services/travelerBookingService';
+import ConfirmModal from '../../components/ConfirmModal';
+import Toast from '../../components/Toast';
+import { Info } from 'lucide-react';
 
 const MyBookingsPage = () => {
   const navigate = useNavigate();
@@ -51,48 +51,6 @@ const MyBookingsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Show toast notification
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: '', type: 'success' });
-    }, 3000);
-  };
-
-  // Handle cancel confirmation
-  const handleCancelConfirm = async () => {
-    if (!bookingToCancel) return;
-
-    try {
-      const response = await travelerBookingService.cancelBooking(bookingToCancel, 'Cancelled by traveler');
-
-      if (response.success) {
-        showToast('Booking cancelled successfully!', 'success');
-        fetchBookings(); // Refresh list
-        setShowCancelModal(false);
-        setBookingToCancel(null);
-      }
-    } catch (error) {
-      let errorMessage = 'Failed to cancel booking';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      if (errorMessage.includes('7 days')) {
-        showToast('Cannot cancel within 7 days of departure', 'error');
-      } else {
-        showToast(errorMessage, 'error');
-      }
-      setShowCancelModal(false);
-    }
-  };
-
-  // Open cancel modal
-  const openCancelModal = (bookingId) => {
-    setBookingToCancel(bookingId);
-    setShowCancelModal(true);
   };
 
   // Filter bookings based on status and search
@@ -152,55 +110,45 @@ const MyBookingsPage = () => {
     setShowDetailsModal(true);
   };
 
-  // Cancel booking
-  // const cancelBooking = async (bookingId) => {
-  //   try {
-  //     const response = await travelerBookingService.cancelBooking(bookingId, 'Cancelled by traveler');
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
 
-  //     if (response.success) {
-  //       alert('✅ Booking Cancelled\n\nYour booking has been cancelled successfully.');
-  //       fetchBookings(); // Refresh list
-  //     }
-  //   } catch (error) {
-  //     // Get the actual error message from backend
-  //     let errorMessage = 'Failed to cancel booking';
+  const openCancelModal = (bookingId) => {
+    setBookingToCancel(bookingId);
+    setShowCancelModal(true);
+  };
 
-  //     // Check different places where error message might be
-  //     if (error.response?.data?.message) {
-  //       errorMessage = error.response.data.message;
-  //     } else if (error.response?.data?.error) {
-  //       errorMessage = error.response.data.error;
-  //     } else if (error.message) {
-  //       errorMessage = error.message;
-  //     }
+  const handleCancelConfirm = async () => {
+    if (!bookingToCancel) return;
 
-  //     console.log('Cancel error:', errorMessage); // Debug
+    try {
+      const response = await travelerBookingService.cancelBooking(
+        bookingToCancel,
+        'Cancelled by traveler'
+      );
 
-  //     // Show user-friendly message based on error content
-  //     if (errorMessage.includes('7 days') || errorMessage.includes('within 7 days')) {
-  //       alert(
-  //         '⚠️ Cannot Cancel\n\n' +
-  //         'This booking cannot be cancelled as it is within 7 days of departure.\n\n' +
-  //         'If you need assistance, please contact our support team.'
-  //       );
-  //     } else if (errorMessage.includes('already cancelled')) {
-  //       alert(
-  //         '⚠️ Already Cancelled\n\n' +
-  //         'This booking has already been cancelled.'
-  //       );
-  //     } else if (error.response?.status === 401) {
-  //       alert(
-  //         '🔒 Session Expired\n\n' +
-  //         'Please login again to cancel this booking.'
-  //       );
-  //     } else {
-  //       alert(
-  //         '❌ Cancellation Failed\n\n' +
-  //         errorMessage
-  //       );
-  //     }
-  //   }
-  // };
+      if (response.success) {
+        showToast('Booking cancelled successfully!', 'success');
+        fetchBookings();
+        setShowCancelModal(false);
+        setBookingToCancel(null);
+      }
+    } catch (error) {
+      let msg = error.response?.data?.message || 'Failed to cancel booking';
+
+      if (msg.includes('7 days')) {
+        showToast('Cannot cancel within 7 days of departure', 'error');
+      } else {
+        showToast(msg, 'error');
+      }
+
+      setShowCancelModal(false);
+    }
+  };
 
   const canCancel = (startDate) => {
     const today = new Date();
@@ -208,7 +156,6 @@ const MyBookingsPage = () => {
     const daysDiff = Math.ceil((tripDate - today) / (1000 * 60 * 60 * 24));
     return daysDiff > 7;
   };
-
 
   // Stats
   const stats = {
@@ -220,11 +167,15 @@ const MyBookingsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-gray-600">Loading your bookings...</div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="absolute inset-0 border-4 border-blue-100 rounded-full animate-ping opacity-75"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p className="text-gray-500">Loading your bookings...</p>
           </div>
         </div>
         <Footer />
@@ -236,104 +187,80 @@ const MyBookingsPage = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">My Bookings</h1>
-          <p className="text-gray-600">View and manage all your travel bookings</p>
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-blue-600 to-teal-500 pt-20">
+        <div
+          className="absolute inset-0 opacity-15"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1488085061387-422e29b40080?q=80&w=2631&auto=format&fit=crop')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 pb-16">
+          <div className="flex items-center gap-3 mb-3">
+            <Calendar size={28} className="text-white" />
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">My Bookings</h1>
+          </div>
+          <p className="text-blue-100 text-lg">Track, manage, and relive all your travel adventures</p>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gray-50 rounded-t-3xl" />
+      </div>
 
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg mr-4">
-                <PackageIcon className="text-blue-600" size={24} />
+          {[
+            { label: "Total Trips", value: stats.total, icon: PackageIcon, color: "from-blue-500 to-blue-600", bg: "bg-blue-50", text: "text-blue-600" },
+            { label: "Upcoming Trips", value: stats.upcoming, icon: Calendar, color: "from-emerald-500 to-teal-500", bg: "bg-emerald-50", text: "text-emerald-600" },
+            { label: "Completed", value: stats.completed, icon: CheckCircle, color: "from-purple-500 to-indigo-500", bg: "bg-purple-50", text: "text-purple-600" },
+            { label: "Cancelled", value: stats.cancelled, icon: Clock, color: "from-gray-400 to-gray-500", bg: "bg-gray-50", text: "text-gray-600" },
+          ].map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 ${stat.bg} rounded-xl`}>
+                    <Icon className={stat.text} size={22} />
+                  </div>
+                  <div>
+                    <div className={`text-2xl font-extrabold ${stat.text}`}>{stat.value}</div>
+                    <div className="text-gray-500 text-xs font-medium">{stat.label}</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">{stats.total}</div>
-                <div className="text-gray-600">Total Bookings</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg mr-4">
-                <Calendar className="text-green-600" size={24} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">{stats.upcoming}</div>
-                <div className="text-gray-600">Upcoming Trips</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg mr-4">
-                <CheckCircle className="text-purple-600" size={24} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">{stats.completed}</div>
-                <div className="text-gray-600">Completed</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-gray-100 rounded-lg mr-4">
-                <Clock className="text-gray-600" size={24} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-800">{stats.cancelled}</div>
-                <div className="text-gray-600">Cancelled</div>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Status Filters */}
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg font-medium ${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-              >
-                All Bookings
-              </button>
-              <button
-                onClick={() => setFilter('upcoming')}
-                className={`px-4 py-2 rounded-lg font-medium ${filter === 'upcoming' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-              >
-                Upcoming
-              </button>
-              <button
-                onClick={() => setFilter('completed')}
-                className={`px-4 py-2 rounded-lg font-medium ${filter === 'completed' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-              >
-                Completed
-              </button>
-              <button
-                onClick={() => setFilter('cancelled')}
-                className={`px-4 py-2 rounded-lg font-medium ${filter === 'cancelled' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-              >
-                Cancelled
-              </button>
+              {[
+                { key: 'all', label: 'All Bookings', activeClass: 'bg-blue-600 text-white' },
+                { key: 'upcoming', label: 'Upcoming', activeClass: 'bg-emerald-600 text-white' },
+                { key: 'completed', label: 'Completed', activeClass: 'bg-purple-600 text-white' },
+                { key: 'cancelled', label: 'Cancelled', activeClass: 'bg-red-500 text-white' },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${filter === f.key ? f.activeClass : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
-
-            {/* Search */}
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
               <input
                 type="text"
                 placeholder="Search bookings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all bg-gray-50 focus:bg-white"
               />
             </div>
           </div>
@@ -341,122 +268,117 @@ const MyBookingsPage = () => {
 
         {/* Bookings List */}
         {filteredBookings.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <PackageIcon className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">No bookings found</h3>
-            <p className="text-gray-500 mb-6">
-              {searchQuery
-                ? `No bookings match "${searchQuery}"`
-                : filter !== 'all'
-                  ? `You have no ${filter} bookings`
-                  : "You haven't made any bookings yet"}
-            </p>
-            {!searchQuery && filter === 'all' && (
-              <button
-                onClick={() => navigate('/package')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg"
-              >
-                Browse Packages
-              </button>
-            )}
+          <div className="relative rounded-3xl overflow-hidden">
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: "url('https://images.unsplash.com/photo-1488085061387-422e29b40080?q=80&w=2631&auto=format&fit=crop')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              <div className="absolute inset-0 bg-blue-900/75" />
+            </div>
+            <div className="relative z-10 py-20 text-center">
+              <PackageIcon className="mx-auto text-white/60 mb-4" size={52} />
+              <h3 className="text-2xl font-bold text-white mb-2">No Bookings Found</h3>
+              <p className="text-blue-200 mb-8 max-w-sm mx-auto">
+                {searchQuery
+                  ? `No bookings match "${searchQuery}"`
+                  : filter !== 'all'
+                    ? `You have no ${filter} bookings`
+                    : "You haven't made any bookings yet. Start your adventure today!"}
+              </p>
+              {!searchQuery && filter === 'all' && (
+                <button
+                  onClick={() => navigate('/package')}
+                  className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-full hover:bg-blue-50 transition-all shadow-lg"
+                >
+                  Browse Packages
+                </button>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {filteredBookings.map((booking) => {
               const statusBadge = getStatusBadge(booking.status, booking.paymentStatus);
 
               return (
-                <div key={booking._id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={booking._id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
                   <div className="p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                      <div>
-                        <div className="flex items-center mb-2">
-                          <h3 className="text-xl font-bold text-gray-800 mr-3">
-                            {booking.packageId?.title || `Booking ${booking.bookingId}`}
-                          </h3>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center ${statusBadge.bg} ${statusBadge.text}`}>
-                            {statusBadge.icon}
-                            <span className="ml-1">{statusBadge.label}</span>
-                          </span>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-teal-400 rounded-2xl flex items-center justify-center flex-shrink-0 shadow">
+                          <PackageIcon className="text-white" size={20} />
                         </div>
-                        <div className="flex items-center text-gray-600 text-sm space-x-4">
-                          <span className="flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            {formatDate(booking.startDate)}
-                          </span>
-                          <span className="flex items-center">
-                            <Users size={14} className="mr-1" />
-                            {booking.travelers} traveler{booking.travelers > 1 ? 's' : ''}
-                          </span>
-                          {booking.packageId?.destination && (
-                            <span className="flex items-center">
-                              <MapPin size={14} className="mr-1" />
-                              {booking.packageId.destination}
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {booking.packageId?.title || `Booking ${booking.bookingId}`}
+                            </h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusBadge.bg} ${statusBadge.text}`}>
+                              {statusBadge.icon}
+                              {statusBadge.label}
                             </span>
-                          )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Calendar size={13} className="text-blue-400" />
+                              {formatDate(booking.startDate)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Users size={13} className="text-blue-400" />
+                              {booking.travelers} traveler{booking.travelers > 1 ? 's' : ''}
+                            </span>
+                            {booking.packageId?.destination && (
+                              <span className="flex items-center gap-1">
+                                <MapPin size={13} className="text-blue-400" />
+                                {booking.packageId.destination}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-800">
+                        <div className="text-2xl font-extrabold text-gray-900">
                           NPR {booking.totalAmount.toLocaleString()}
                         </div>
-                        <div className="text-gray-500 text-sm">Booking ID: {booking.bookingId}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">ID: {booking.bookingId}</div>
                       </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-3 pt-6 border-t">
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-50">
                       <button
                         onClick={() => viewBookingDetails(booking)}
-                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
                       >
-                        <Eye size={16} className="mr-2" />
+                        <Eye size={15} />
                         View Details
                       </button>
-
                       <button
                         onClick={() => navigate(`/package/${booking.packageId?._id || booking.packageId}`)}
-                        className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
                       >
-                        <PackageIcon size={16} className="mr-2" />
+                        <PackageIcon size={15} />
                         View Package
                       </button>
-
                       {booking.status === 'pending' && (
-                        <div className="relative group">
-                          {!canCancel(booking.startDate) && (
-                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                              Cannot cancel within 7 days of departure
-                            </div>
-                          )}
-                          <button
-                            onClick={() => {
-                              if (!canCancel(booking.startDate)) {
-                                showToast('Cannot cancel within 7 days of departure', 'error');
-                                return;
-                              }
-                              openCancelModal(booking._id);
-                            }}
-                            className={`flex items-center px-4 py-2 rounded-lg transition-colors ${canCancel(booking.startDate)
-                              ? 'border border-red-300 text-red-600 hover:bg-red-50'
-                              : 'border border-gray-300 text-gray-400 cursor-not-allowed bg-gray-50'
-                              }`}
-                            disabled={!canCancel(booking.startDate)}
-                          >
-                            <XCircle size={16} className="mr-2" />
-                            Cancel Booking
-                            {!canCancel(booking.startDate) && (
-                              <Info size={14} className="ml-2 text-gray-400" />
-                            )}
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => {
+                            if (!canCancel(booking.startDate)) {
+                              showToast('Cannot cancel within 7 days of departure', 'error');
+                              return;
+                            }
+                            openCancelModal(booking._id);
+                          }} className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 rounded-xl text-sm font-medium hover:bg-red-50 transition-all"
+                        >
+                          <XCircle size={15} />
+                          Cancel
+                        </button>
                       )}
-
-                      {/* <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 ml-auto">
-                        <Download size={16} className="mr-2" />
-                        Download Invoice
-                      </button> */}
                     </div>
                   </div>
                 </div>
@@ -468,19 +390,31 @@ const MyBookingsPage = () => {
         {/* Empty state - Create first booking */}
         {bookings.length === 0 && !loading && (
           <div className="mt-12 text-center">
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-12 max-w-2xl mx-auto">
-              <PackageIcon className="mx-auto text-blue-500 mb-6" size={64} />
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Start Your Adventure!</h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                You haven't booked any packages yet. Explore our amazing destinations and create unforgettable memories.
-              </p>
-              <button
-                onClick={() => navigate('/package')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-lg flex items-center mx-auto"
+            <div className="relative rounded-3xl overflow-hidden max-w-2xl mx-auto">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: "url('https://images.unsplash.com/photo-1502791451862-7bd8c1df43a7?q=80&w=2664&auto=format&fit=crop')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
               >
-                Browse Packages
-                <ChevronRight size={20} className="ml-2" />
-              </button>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 to-teal-800/70" />
+              </div>
+              <div className="relative z-10 py-16 px-8">
+                <PackageIcon className="mx-auto text-white/60 mb-5" size={56} />
+                <h3 className="text-2xl font-bold text-white mb-3">Start Your Adventure!</h3>
+                <p className="text-blue-200 mb-8 max-w-md mx-auto">
+                  Explore our amazing destinations and create unforgettable memories.
+                </p>
+                <button
+                  onClick={() => navigate('/package')}
+                  className="bg-white text-blue-700 font-semibold px-8 py-3 rounded-full hover:bg-blue-50 transition-all shadow-lg inline-flex items-center gap-2"
+                >
+                  Browse Packages
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -488,123 +422,107 @@ const MyBookingsPage = () => {
 
       {/* Booking Details Modal */}
       {showDetailsModal && selectedBooking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="p-7">
               {/* Modal Header */}
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Booking Details</h2>
+              <div className="flex justify-between items-center mb-6 pb-5 border-b border-gray-100">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Booking Details</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">ID: {selectedBooking.bookingId}</p>
+                </div>
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all font-bold"
                 >
                   ✕
                 </button>
               </div>
 
-              {/* Booking Info */}
-              <div className="space-y-6">
-                {/* Status & ID */}
-                <div className="flex justify-between items-center">
+              <div className="space-y-5">
+                {/* Status & Package */}
+                <div className="flex justify-between items-center p-4 bg-blue-50 rounded-2xl">
                   <div>
-                    <div className="text-lg font-bold text-gray-800">
+                    <div className="text-lg font-bold text-gray-900">
                       {selectedBooking.package?.title || 'Package'}
                     </div>
-                    <div className="text-gray-500">Booking ID: {selectedBooking.bookingId}</div>
+                    <div className="text-sm text-gray-500 mt-0.5">Booking ID: {selectedBooking.bookingId}</div>
                   </div>
                   {(() => {
                     const statusBadge = getStatusBadge(selectedBooking.status, selectedBooking.paymentStatus);
                     return (
-                      <span className={`px-4 py-2 rounded-full font-medium flex items-center ${statusBadge.bg} ${statusBadge.text}`}>
+                      <span className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5 ${statusBadge.bg} ${statusBadge.text}`}>
                         {statusBadge.icon}
-                        <span className="ml-2">{statusBadge.label}</span>
+                        {statusBadge.label}
                       </span>
                     );
                   })()}
                 </div>
 
-                {/* Trip Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-bold text-gray-700 mb-3">Trip Details</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Start Date:</span>
-                        <span className="font-medium">{formatDate(selectedBooking.startDate)}</span>
+                {/* Trip & Payment Details - Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-3">
+                    <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Trip Details</h4>
+                    {[
+                      { label: "Start Date", value: formatDate(selectedBooking.startDate) },
+                      { label: "Travelers", value: `${selectedBooking.travelers} person${selectedBooking.travelers > 1 ? 's' : ''}` },
+                      { label: "Duration", value: `${selectedBooking.packageId?.duration || 'N/A'} days` },
+                      { label: "Destination", value: selectedBooking.package?.destination || 'N/A' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-gray-500">{item.label}</span>
+                        <span className="font-semibold text-gray-800">{item.value}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Travelers:</span>
-                        <span className="font-medium">{selectedBooking.travelers} person{selectedBooking.travelers > 1 ? 's' : ''}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{selectedBooking.packageId?.duration || 'N/A'} days</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Destination:</span>
-                        <span className="font-medium">{selectedBooking.package?.destination || 'N/A'}</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
 
-                  {/* Payment Details */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-bold text-gray-700 mb-3">Payment Details</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Amount:</span>
-                        <span className="font-bold text-lg">NPR {selectedBooking.totalAmount.toLocaleString()}</span>
+                  <div className="p-4 bg-gray-50 rounded-2xl space-y-3">
+                    <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Payment Details</h4>
+                    {[
+                      { label: "Total Amount", value: `NPR ${selectedBooking.totalAmount?.toLocaleString()}`, bold: true },
+                      { label: "Payment Method", value: selectedBooking.paymentDetails.method },
+                      { label: "Payment Status", value: selectedBooking.paymentStatus },
+                      { label: "Booking Date", value: formatDate(selectedBooking.bookingDate) },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-gray-500">{item.label}</span>
+                        <span className={item.bold ? "font-extrabold text-blue-700 text-base" : "font-semibold text-gray-800 capitalize"}>
+                          {item.value}
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Payment Method:</span>
-                        <span className="font-medium capitalize">{selectedBooking.paymentDetails.method}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Payment Status:</span>
-                        <span className="font-medium capitalize">{selectedBooking.paymentStatus}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Booking Date:</span>
-                        <span className="font-medium">{formatDate(selectedBooking.bookingDate)}</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Traveler Information */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-bold text-gray-700 mb-3">Traveler Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">Primary Traveler</div>
-                      <div className="font-medium">{selectedBooking.travelerInfo.name}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Email</div>
-                      <div className="font-medium">{selectedBooking.travelerInfo.email}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Phone</div>
-                      <div className="font-medium">{selectedBooking.travelerInfo.phone}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-600">Emergency Contact</div>
-                      <div className="font-medium">{selectedBooking.travelerInfo.emergencyContact}</div>
-                    </div>
+                {/* Traveler Info */}
+                <div className="p-4 bg-gray-50 rounded-2xl">
+                  <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wider mb-3">Traveler Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      { label: "Primary Traveler", value: selectedBooking.travelerInfo.name },
+                      { label: "Email", value: selectedBooking.travelerInfo.email },
+                      { label: "Phone", value: selectedBooking.travelerInfo.phone },
+                      { label: "Emergency Contact", value: selectedBooking.travelerInfo.emergencyContact },
+                    ].map((item, i) => (
+                      <div key={i}>
+                        <div className="text-xs text-gray-500 mb-0.5">{item.label}</div>
+                        <div className="text-sm font-semibold text-gray-800">{item.value}</div>
+                      </div>
+                    ))}
                     {selectedBooking.travelerInfo.specialRequirements && (
                       <div className="md:col-span-2">
-                        <div className="text-sm text-gray-600">Special Requirements</div>
-                        <div className="font-medium">{selectedBooking.travelerInfo.specialRequirements}</div>
+                        <div className="text-xs text-gray-500 mb-0.5">Special Requirements</div>
+                        <div className="text-sm font-semibold text-gray-800">{selectedBooking.travelerInfo.specialRequirements}</div>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end space-x-4 pt-6 border-t">
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => setShowDetailsModal(false)}
-                    className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
                   >
                     Close
                   </button>
@@ -613,7 +531,7 @@ const MyBookingsPage = () => {
                       setShowDetailsModal(false);
                       navigate(`/package/${selectedBooking.packageId?._id || selectedBooking.packageId}`);
                     }}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-600 transition-all shadow-sm"
                   >
                     View Package
                   </button>
@@ -623,7 +541,6 @@ const MyBookingsPage = () => {
           </div>
         </div>
       )}
-      {/* Cancel Confirmation Modal */}
       <ConfirmModal
         isOpen={showCancelModal}
         onClose={() => {
@@ -638,7 +555,6 @@ const MyBookingsPage = () => {
         confirmVariant="danger"
       />
 
-      {/* Toast Notification */}
       {toast.show && (
         <Toast
           message={toast.message}

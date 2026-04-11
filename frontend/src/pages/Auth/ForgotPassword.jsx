@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, ArrowLeft, KeyRound, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const API_URL = "https://travelmatess.onrender.com/api/auth";
 
@@ -22,7 +22,6 @@ export default function ForgotPassword() {
       toast.error("Please enter your email");
       return;
     }
-
     setLoading(true);
     try {
       await axios.post(`${API_URL}/forgotpassword`, { email });
@@ -37,11 +36,9 @@ export default function ForgotPassword() {
 
   const handleOtpChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
     if (value && index < 5) {
       otpRefs.current[index + 1].focus();
     }
@@ -53,17 +50,14 @@ export default function ForgotPassword() {
     }
   };
 
-
   const handleVerifyOtp = async () => {
     const otpString = otp.join("");
     if (otpString.length !== 6) {
       toast.error("Please enter full 6-digit OTP");
       return;
     }
-
     setLoading(true);
     try {
-      // Verify OTP first
       await axios.post(`${API_URL}/verify-otp`, { email, otp: otpString });
       toast.success("OTP verified!");
       setStep(3);
@@ -83,13 +77,9 @@ export default function ForgotPassword() {
       toast.error("Password must be at least 8 characters");
       return;
     }
-
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/resetpassword`, {
-        email,
-        password: newPassword,
-      });
+      await axios.post(`${API_URL}/resetpassword`, { email, password: newPassword });
       toast.success("Password reset successful!");
       navigate("/login");
     } catch (err) {
@@ -99,151 +89,201 @@ export default function ForgotPassword() {
     }
   };
 
+  const stepLabels = ["Enter Email", "Verify OTP", "New Password"];
+
   return (
     <>
       <ToastContainer position="top-center" autoClose={4000} />
-
-      <div
-        className="min-h-screen w-full flex items-center justify-center relative"
-        style={{
-          background: `
-            linear-gradient(
-              115deg,
-              #2435A1 0%,
-              #2435A1 32%,
-              white 32%,
-              white 100%
-            )
-          `,
-        }}
-      >
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
-
-        <div className="relative z-10 w-[92%] max-w-6xl bg-white rounded-xl shadow-2xl overflow-hidden flex">
-
-          {/* LEFT IMAGE */}
+      <div className="min-h-screen w-full flex bg-gray-50">
+        {/* LEFT - Travel Image */}
+        <div className="hidden lg:flex w-1/2 relative bg-gray-900 overflow-hidden">
           <div
-            className="relative w-full lg:w-1/2 h-96 lg:h-auto bg-cover bg-center"
-            style={{ backgroundImage: "url('/src/assets/img.png')" }}
-          >
-            <div className="absolute inset-0 bg-black/40"></div>
-            <div className="relative z-10 h-full flex flex-col justify-center items-start p-10 lg:p-16 text-white">
-              <h2 className="text-4xl font-bold leading-tight">
-                Forgot Password?
+            className="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[30s] hover:scale-110"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2670&auto=format&fit=crop')",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent" />
+          <div className="relative z-10 p-14 flex flex-col justify-end h-full">
+            <Link to="/" className="absolute top-12 left-12 text-white/70 hover:text-white flex items-center gap-2 transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Home</span>
+            </Link>
+            <div className="max-w-lg">
+              <h2 className="text-5xl font-extrabold text-white mb-5 leading-tight tracking-tight">
+                Reset your{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-300">
+                  access
+                </span>{" "}
+                and keep exploring.
               </h2>
-              <p className="text-xl mt-4">
-                No worries — we'll help you get back in
+              <p className="text-xl text-gray-300 font-light leading-relaxed">
+                Don't let a forgotten password stop your next adventure. We'll have you back exploring in minutes.
               </p>
             </div>
           </div>
+        </div>
 
-          {/* RIGHT FORM */}
-          <div className="w-full lg:w-1/2 bg-[#0F4CB5] flex items-center justify-center p-10">
-            <div className="w-full max-w-sm space-y-7">
-              <div className="border border-white text-white py-2 text-center uppercase font-semibold tracking-wide rounded">
-                Travel Mate
+        {/* RIGHT - Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 md:p-16 relative">
+          <Link to="/" className="lg:hidden absolute top-8 left-8 text-gray-500 hover:text-gray-900 flex items-center gap-2 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+
+          <div className="w-full max-w-md space-y-8">
+            {/* Logo */}
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 shadow-lg text-white mb-6">
+                <KeyRound size={28} />
               </div>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Reset Password</h1>
+              <p className="text-gray-500 mt-2">We'll guide you back to your account</p>
+            </div>
 
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                    <Mail size={18} className="text-gray-500" />
+            {/* Step Indicator */}
+            <div className="flex items-center justify-between px-2">
+              {stepLabels.map((label, i) => (
+                <div key={i} className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all mb-1 ${step > i + 1
+                      ? "bg-emerald-500 text-white"
+                      : step === i + 1
+                        ? "bg-blue-600 text-white ring-4 ring-blue-100"
+                        : "bg-gray-100 text-gray-400"
+                      }`}
+                  >
+                    {step > i + 1 ? <CheckCircle2 size={18} /> : i + 1}
+                  </div>
+                  <span className={`text-xs font-medium ${step === i + 1 ? "text-blue-600" : "text-gray-400"}`}>
+                    {label}
+                  </span>
+                  {i < stepLabels.length - 1 && (
+                    <div className={`absolute hidden`} />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Step 1: Email */}
+            {step === 1 && (
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                      <Mail className="h-5 w-5" />
+                    </div>
                     <input
                       type="email"
-                      placeholder="Email Address"
+                      placeholder="hello@travelmate.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-transparent focus:outline-none text-gray-800"
+                      className="block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900"
                       required
                     />
                   </div>
-
-                  <button
-                    onClick={handleSendOtp}
-                    disabled={loading}
-                    className="w-full bg-white text-[#0F4CB5] font-bold py-3 rounded-full shadow hover:bg-gray-100 transition disabled:opacity-70"
-                  >
-                    {loading ? "Sending..." : "Send OTP"}
-                  </button>
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-8">
-                  <p className="text-center text-white/80 text-sm">
-                    Enter the 6-digit code sent to your email
+                  <p className="mt-2 text-sm text-gray-500">
+                    We'll send a 6-digit verification code to this address.
                   </p>
-                  <div className="flex justify-center gap-4">
-                    {otp.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => (otpRefs.current[index] = el)}
-                        type="text"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-14 h-14 text-center text-2xl font-bold bg-white rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800"
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={loading}
-                    className="w-full bg-white text-[#0F4CB5] font-bold py-3 rounded-full shadow hover:bg-gray-100 transition disabled:opacity-70"
-                  >
-                    {loading ? "Verifying..." : "Verify OTP"}
-                  </button>
                 </div>
-              )}
+                <button
+                  onClick={handleSendOtp}
+                  disabled={loading}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-500/20 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transform hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:transform-none"
+                >
+                  {loading ? "Sending OTP..." : "Send Verification Code"}
+                </button>
+              </div>
+            )}
 
-              {step === 3 && (
-                <div className="space-y-6">
-                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                    <Lock size={18} className="text-gray-500" />
+            {/* Step 2: OTP */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <p className="text-sm text-gray-600 text-center">
+                  Enter the 6-digit code sent to <span className="font-medium text-blue-600">{email}</span>
+                </p>
+                <div className="flex justify-center gap-3">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (otpRefs.current[index] = el)}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-12 h-14 text-center text-xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 text-gray-800 bg-gray-50 focus:bg-white transition-all"
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={loading}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-500/20 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transform hover:-translate-y-0.5 transition-all disabled:opacity-70"
+                >
+                  {loading ? "Verifying..." : "Verify Code"}
+                </button>
+                <button
+                  onClick={() => { setStep(1); setOtp(["", "", "", "", "", ""]); }}
+                  className="w-full text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                >
+                  Didn't receive the code? Go back
+                </button>
+              </div>
+            )}
+
+            {/* Step 3: New Password */}
+            {step === 3 && (
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                      <Lock className="h-5 w-5" />
+                    </div>
                     <input
                       type="password"
-                      placeholder="New Password"
+                      placeholder="Min. 8 characters"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full bg-transparent focus:outline-none text-gray-800"
+                      className="block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900"
                       required
                     />
                   </div>
-
-                  <div className="bg-white flex items-center gap-3 rounded-lg px-4 py-3 shadow">
-                    <Lock size={18} className="text-gray-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                      <Lock className="h-5 w-5" />
+                    </div>
                     <input
                       type="password"
-                      placeholder="Confirm Password"
+                      placeholder="Repeat your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-transparent focus:outline-none text-gray-800"
+                      className="block w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900"
                       required
                     />
                   </div>
-
-                  <button
-                    onClick={handleResetPassword}
-                    disabled={loading}
-                    className="w-full bg-white text-[#0F4CB5] font-bold py-3 rounded-full shadow hover:bg-gray-100 transition disabled:opacity-70"
-                  >
-                    {loading ? "Resetting..." : "Reset Password"}
-                  </button>
                 </div>
-              )}
-
-              <p className="text-center text-white/80">
-                Remember password?{" "}
-                <span
-                  onClick={() => navigate("/login")}
-                  className="text-white font-bold hover:underline cursor-pointer"
+                <button
+                  onClick={handleResetPassword}
+                  disabled={loading}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-500/20 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transform hover:-translate-y-0.5 transition-all disabled:opacity-70"
                 >
-                  Login here
-                </span>
-              </p>
-            </div>
+                  {loading ? "Resetting..." : "Reset Password"}
+                </button>
+              </div>
+            )}
+
+            <p className="text-center text-sm text-gray-600">
+              Remember your password?{" "}
+              <Link to="/login" className="text-blue-600 font-semibold hover:text-blue-500 transition-colors">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

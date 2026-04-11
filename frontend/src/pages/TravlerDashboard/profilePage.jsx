@@ -159,10 +159,14 @@ const TravelerProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex justify-center items-center h-64">
-          <div className="text-gray-600">Loading profile...</div>
+        <div className="flex flex-col justify-center items-center h-64 gap-4">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin" />
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-400 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.7s' }} />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Loading your profile...</p>
         </div>
         <Footer />
       </div>
@@ -173,17 +177,17 @@ const TravelerProfilePage = () => {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
+      <main className="container mx-auto px-4 pt-24 pb-8">
+        {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-            <p className="text-gray-600">Manage your personal information and travel preferences</p>
+            <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+            <p className="text-gray-500 mt-1">Manage your personal information and travel preferences</p>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center space-x-3">
+          <div className="mt-4 md:mt-0 flex items-center gap-3">
             <button
               onClick={() => navigate('/my-bookings')}
-              className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50"
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all"
             >
               My Bookings
             </button>
@@ -191,67 +195,64 @@ const TravelerProfilePage = () => {
               <>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50"
+                  className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveProfile}
-                  className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 flex items-center"
+                  className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <Save size={20} className="mr-2" />
+                  <Save size={18} />
                   Save Changes
                 </button>
               </>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+                className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-sm"
               >
                 Edit Profile
               </button>
             )}
           </div>
         </div>
-
         {/* Message Display */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+            <span>{message.type === 'success' ? '✓' : '✕'}</span>
             {message.text}
           </div>
         )}
 
-        {/* Profile Stats Card */}
-        <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border border-blue-100 p-6 mb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start">
-            {/* Profile Picture */}
-            <div className="mb-6 md:mb-0 md:mr-8">
-              <div className="relative">
-                <div className="w-32 h-32 bg-white rounded-xl border-4 border-white shadow-lg overflow-hidden">
+        {/* Profile Hero Card */}
+        <div className="relative rounded-3xl overflow-hidden mb-8 shadow-sm">
+          <div
+            className="absolute inset-0 opacity-15"
+            style={{ backgroundImage: `url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1400')`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+          <div className="relative bg-gradient-to-r from-blue-600/90 to-teal-600/90 p-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className="w-28 h-28 rounded-2xl border-4 border-white/30 overflow-hidden bg-white/20 shadow-xl">
                   {profile.profilePicture ? (
                     <img
                       src={`https://travelmatess.onrender.com${profile.profilePicture}`}
                       alt={profile.fullName}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "/assets/images/default-avatar.jpg";
-                        e.target.className = "w-full h-full flex items-center justify-center";
-                        e.target.innerHTML = `<span class="text-4xl font-bold text-blue-600">
-          ${profile.fullName?.charAt(0)?.toUpperCase() || 'T'}
-        </span>`;
-                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-4xl font-bold text-blue-600">
+                      <span className="text-5xl font-bold text-white">
                         {profile.fullName?.charAt(0)?.toUpperCase() || 'T'}
                       </span>
                     </div>
                   )}
                 </div>
                 {isEditing && (
-                  <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-50">
-                    <Upload size={18} />
+                  <label className="absolute -bottom-2 -right-2 bg-white shadow-lg p-2 rounded-xl cursor-pointer hover:bg-gray-50 transition-all">
+                    <Upload size={16} className="text-blue-600" />
                     <input
                       type="file"
                       className="hidden"
@@ -271,59 +272,58 @@ const TravelerProfilePage = () => {
                   </label>
                 )}
               </div>
-            </div>
 
-            {/* Traveler Info */}
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.fullName}</h2>
-              <div className="flex items-center justify-center md:justify-start text-gray-600 mb-4">
-                <Mail size={16} className="mr-2" />
-                {profile.email}
-              </div>
-
-              {/* Traveler Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <div className="bg-white p-4 rounded-lg text-center shadow-sm">
-                  <div className="text-2xl font-bold text-blue-600">{stats.totalBookings}</div>
-                  <div className="text-sm text-gray-600">Total Bookings</div>
+              {/* User Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs text-white/90 font-medium mb-3 border border-white/30">
+                  <MapPin size={11} />
+                  Explorer · {profile.nationality || 'Nepali'}
                 </div>
-                <div className="bg-white p-4 rounded-lg text-center shadow-sm">
-                  <div className="text-2xl font-bold text-green-600">{stats.upcomingTrips}</div>
-                  <div className="text-sm text-gray-600">Upcoming Trips</div>
+                <h2 className="text-3xl font-bold text-white mb-1">{profile.fullName || 'Traveler'}</h2>
+                <div className="flex items-center justify-center md:justify-start gap-2 text-white/70 text-sm mb-5">
+                  <Mail size={14} />
+                  {profile.email}
                 </div>
-                {/* <div className="bg-white p-4 rounded-lg text-center shadow-sm">
-                  <div className="text-2xl font-bold text-purple-600">NPR {stats.totalSpent?.toLocaleString()}</div>
-                  <div className="text-sm text-gray-600">Total Spent</div>
-                </div> */}
 
+                {/* Stats */}
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  {[
+                    { value: stats.totalBookings ?? 0, label: 'Bookings', color: 'from-blue-400/30 to-blue-500/30' },
+                    { value: stats.upcomingTrips ?? 0, label: 'Upcoming', color: 'from-emerald-400/30 to-emerald-500/30' },
+                    { value: stats.pendingBookings ?? 0, label: 'Pending', color: 'from-amber-400/30 to-amber-500/30' },
+                  ].map((s, i) => (
+                    <div key={i} className={`bg-gradient-to-br ${s.color} backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 text-center min-w-[90px]`}>
+                      <div className="text-2xl font-bold text-white">{s.value}</div>
+                      <div className="text-xs text-white/70 mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-3 px-1 font-medium text-sm border-b-2 whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+        <div className="mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-800'
+                  }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7">
           {/* Personal Info Tab */}
           {activeTab === 'basic' && (
             <div className="space-y-6">
@@ -340,7 +340,7 @@ const TravelerProfilePage = () => {
                     value={profile.fullName}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
@@ -353,7 +353,7 @@ const TravelerProfilePage = () => {
                     name="email"
                     value={profile.email}
                     disabled
-                    className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-400 cursor-not-allowed"
                   />
                 </div>
 
@@ -367,7 +367,7 @@ const TravelerProfilePage = () => {
                     value={profile.dateOfBirth}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
@@ -380,7 +380,7 @@ const TravelerProfilePage = () => {
                     value={profile.nationality}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="Nepali">Nepali</option>
                     <option value="Indian">Indian</option>
@@ -398,7 +398,7 @@ const TravelerProfilePage = () => {
                     value={profile.passportNumber}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     placeholder="A12345678"
                   />
                 </div>
@@ -422,7 +422,7 @@ const TravelerProfilePage = () => {
                     value={profile.phone}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     placeholder="+977 98XXXXXXX"
                   />
                 </div>
@@ -437,7 +437,7 @@ const TravelerProfilePage = () => {
                     value={profile.emergencyContact}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     placeholder="Alternative phone number"
                   />
                 </div>
@@ -452,7 +452,7 @@ const TravelerProfilePage = () => {
                     value={profile.address}
                     onChange={handleChange}
                     disabled={!isEditing}
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                     placeholder="Street, City, Country"
                   />
                 </div>
@@ -476,7 +476,7 @@ const TravelerProfilePage = () => {
                     onChange={handleChange}
                     disabled={!isEditing}
                     rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60 resize-none"
                     placeholder="Vegetarian, Vegan, Gluten-free, Food allergies, etc."
                   />
                 </div>
@@ -491,7 +491,7 @@ const TravelerProfilePage = () => {
                     onChange={handleChange}
                     disabled={!isEditing}
                     rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-500"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:cursor-not-allowed disabled:opacity-60 resize-none"
                     placeholder="Any medical conditions, allergies, or special requirements we should know about"
                   />
                   <p className="text-sm text-gray-500 mt-2">
@@ -517,7 +517,7 @@ const TravelerProfilePage = () => {
                     name="currentPassword"
                     value={profile.currentPassword}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Enter current password"
                   />
                 </div>
@@ -531,7 +531,7 @@ const TravelerProfilePage = () => {
                     name="newPassword"
                     value={profile.newPassword}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Enter new password"
                   />
                 </div>
@@ -545,14 +545,14 @@ const TravelerProfilePage = () => {
                     name="confirmPassword"
                     value={profile.confirmPassword}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg"
+                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     placeholder="Confirm new password"
                   />
                 </div>
 
                 <button
                   onClick={handleChangePassword}
-                  className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700"
+                  className="px-7 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-sm"
                 >
                   Change Password
                 </button>
@@ -563,19 +563,19 @@ const TravelerProfilePage = () => {
 
         {/* Save Button for Mobile */}
         {isEditing && activeTab !== 'security' && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 shadow-xl">
             <div className="flex space-x-3">
               <button
                 onClick={() => setIsEditing(false)}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveProfile}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 flex items-center justify-center"
+                className="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-all shadow-sm"
               >
-                <Save size={20} className="mr-2" />
+                <Save size={18} />
                 Save
               </button>
             </div>

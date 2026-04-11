@@ -1,5 +1,5 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { Star, MapPin, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function PackageCard({
@@ -17,7 +17,7 @@ export default function PackageCard({
   const navigate = useNavigate();
 
   const getImageUrl = (url) => {
-    if (!url) return "/assets/images/default-package.jpg";
+    if (!url) return "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80"; // Premium fallback image
     if (url.startsWith('http')) return url;
     return `https://travelmatess.onrender.com${url}`;
   };
@@ -26,77 +26,72 @@ export default function PackageCard({
     image ||
     (images?.find(img => img.isCover)?.url) ||
     (images?.[0]?.url)
-  ) || "/assets/images/default-package.jpg";
+  );
 
-  // Safe rating extraction (you already have g ood logic)
+  // Safe rating extraction
   const ratingValue = typeof rating === 'object' ? rating.average || 0 : rating || 0;
   const reviewCount = typeof rating === 'object' ? rating.count || 0 : reviews || 0;
 
   return (
     <div
-      className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer"
+      className="group bg-white rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.1)] transition-all duration-300 border border-gray-100 cursor-pointer transform hover:-translate-y-1 flex flex-col h-full"
       onClick={() => navigate(`/package/${id}`)}
     >
       {/* Image Section */}
-      <div className="relative h-48 md:h-56 overflow-hidden">
+      <div className="relative h-60 overflow-hidden">
         <img
           src={displayImage}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={(e) => {
-            e.target.src = "/assets/images/default-package.jpg";
+            e.target.src = "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&q=80";
           }}
         />
+        {/* Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
         {/* Price badge */}
-        <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-          NPR {typeof price === 'number' ? price.toLocaleString() : price}
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-gray-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+          <span className="text-blue-600 mr-1">NPR</span>
+          {typeof price === 'number' ? price.toLocaleString() : price}
+        </div>
+
+        {/* Floating Rating */}
+        <div className="absolute bottom-4 left-4 bg-black/40 backdrop-blur-md rounded-lg px-3 py-1.5 flex items-center gap-1.5 border border-white/20">
+          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+          <span className="text-white font-medium text-sm">{ratingValue.toFixed(1)}</span>
+          <span className="text-gray-300 text-xs">({reviewCount})</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-          {title}
-        </h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {description}
-        </p>
+      <div className="p-6 flex flex-col flex-1">
 
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={18}
-                className={
-                  i < Math.floor(ratingValue)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-gray-300"
-                }
-              />
-            ))}
+        {/* Meta info row */}
+        <div className="flex items-center justify-between mb-3 text-xs font-medium text-gray-500">
+          <div className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{duration} days</span>
           </div>
-          <span className="font-medium text-gray-800">
-            {ratingValue.toFixed(1)}
-          </span>
-          <span className="text-sm text-gray-500">
-            ({reviewCount})
-          </span>
-        </div>
-
-        {/* Duration & Difficulty */}
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-          <span><strong>{duration}</strong> days</span>
-          <span className="px-3 py-1 bg-gray-100 rounded-full text-xs">
+          <span className={`px-2.5 py-1 rounded-md ${difficulty === 'Hard' ? 'bg-red-50 text-red-600' : difficulty === 'Easy' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
             {difficulty || 'Moderate'}
           </span>
         </div>
 
+        <h3 className="text-xl font-heading font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+          {title}
+        </h3>
+
+        <p className="text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed flex-1">
+          {description}
+        </p>
+
         {/* View Details Button */}
-        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition">
-          View Details
-        </button>
+        <div className="mt-auto pt-4 border-t border-gray-100">
+          <div className="w-full bg-gray-50 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-blue-500 group-hover:text-white text-gray-700 font-medium py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2">
+            <span>View Details</span>
+          </div>
+        </div>
       </div>
     </div>
   );

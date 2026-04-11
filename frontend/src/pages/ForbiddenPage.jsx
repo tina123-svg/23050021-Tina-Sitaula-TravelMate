@@ -1,67 +1,82 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Home, ArrowLeft, Lock } from 'lucide-react';
+import { Home, ArrowLeft, Compass, Map } from 'lucide-react';
 
 const ForbiddenPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        {/* Lock Icon with Animation */}
-        <div className="relative mb-8">
-          <div className="w-32 h-32 bg-red-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
-            <Lock className="text-red-500" size={64} />
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=2675&auto=format&fit=crop')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-blue-900/80 to-slate-900/90" />
+      </div>
+
+      {/* Floating decorative elements */}
+      <div className="absolute top-20 left-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" />
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-6 max-w-lg">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-teal-400 rounded-xl flex items-center justify-center">
+            <span className="text-white font-bold text-xl">T</span>
           </div>
-          <div className="absolute -top-2 -right-2 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+          <span className="text-white font-bold text-2xl">TravelMate</span>
+        </div>
+
+        {/* 403 Badge */}
+        <div className="relative inline-block mb-8">
+          <div className="w-32 h-32 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 mx-auto">
+            <Compass size={56} className="text-white" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
             403
           </div>
         </div>
 
-        {/* Error Message */}
-        <h1 className="text-4xl font-bold text-gray-800 mb-3">
-          Access Forbidden
+        {/* Message */}
+        <h1 className="text-5xl font-extrabold text-white mb-4 tracking-tight">
+          Off the Map
         </h1>
-        <p className="text-lg text-gray-600 mb-6">
-          You don't have permission to access this page.
+        <p className="text-lg text-blue-100/80 mb-4 leading-relaxed">
+          This destination is restricted territory. You don't have the right permissions to explore this area.
         </p>
-
-        {/* User Info Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
-          <div className="flex items-center justify-center mb-4">
-            <Shield className="text-red-500 mr-2" size={20} />
-            <span className="text-gray-700 font-medium">This area is restricted</span>
-          </div>
-          <p className="text-sm text-gray-500">
-            If you believe this is a mistake, please contact support or try logging in with the correct account.
-          </p>
-        </div>
+        <p className="text-sm text-blue-200/60 mb-10">
+          If you believe this is a mistake, please contact our support team or try logging in with the correct account.
+        </p>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center px-6 py-3 border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-medium rounded-xl transition-all backdrop-blur-md"
           >
-            <ArrowLeft size={18} className="mr-2" />
+            <ArrowLeft size={18} />
             Go Back
           </button>
-
           <button
             onClick={() => navigate('/')}
-            className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <Home size={18} className="mr-2" />
-            Go to Homepage
+            <Home size={18} />
+            Back to Home
           </button>
         </div>
 
-        {/* Support Link */}
-        <p className="mt-8 text-sm text-gray-500">
+        {/* Help Text */}
+        <p className="mt-10 text-sm text-blue-200/50">
           Need help?{' '}
-          <button
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
+          <button className="text-blue-300 hover:text-white font-medium transition-colors underline underline-offset-2">
             Contact Support
           </button>
         </p>

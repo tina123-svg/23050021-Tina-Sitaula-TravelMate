@@ -59,17 +59,33 @@ export default function Footer() {
           {/* Social */}
           <div>
             <h3 className="font-heading font-semibold text-white text-lg mb-6">Follow Us</h3>
-            <div className="flex gap-4">
-              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, idx) => (
-                <a
-                  key={idx}
-                  href="#"
-                  className="w-10 h-10 bg-gray-900 border border-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-1 transition-all duration-300 shadow-md group"
-                >
-                  <Icon size={18} className="text-gray-400 group-hover:text-white transition-colors" />
-                </a>
-              ))}
-            </div>
+
+            {/** restore links like before */}
+            {(() => {
+              const socialLinks = [
+                { Icon: Facebook, url: "https://facebook.com", label: "Facebook" },
+                { Icon: Instagram, url: "https://instagram.com", label: "Instagram" },
+                { Icon: Twitter, url: "https://twitter.com", label: "Twitter" },
+                { Icon: Linkedin, url: "https://linkedin.com", label: "LinkedIn" }
+              ];
+
+              return (
+                <div className="flex gap-4">
+                  {socialLinks.map(({ Icon, url, label }, idx) => (
+                    <a
+                      key={idx}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="w-10 h-10 bg-gray-900 border border-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-1 transition-all duration-300 shadow-md group"
+                    >
+                      <Icon size={18} className="text-gray-400 group-hover:text-white transition-colors" />
+                    </a>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </div>
 
